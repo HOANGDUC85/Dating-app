@@ -1,5 +1,6 @@
 <template>
   <div class="login-page-container">
+    <div class="white-container">
     <!-- Logo section -->
     <div class="logo-container">
       <div class="logo">
@@ -19,16 +20,31 @@
 
       <!-- Sign up with email button -->
       <button @click="signUpWithEmail" class="sign-up-email-button">Sign up with email</button>
+      <!-- Already have an account? Log in link -->
+      <p class="already-have-account">
+        Already have an account? 
+        <a @click="goToLogin" class="login-link">Log in</a>
+      </p>
 
       <!-- OR separator -->
       <div class="separator">
-        <span>or continue with</span>
+        <hr class="line">
+        <span>OR</span>
+        <hr class="line">
       </div>
+
 
       <!-- Sign in options -->
       <button @click="signUpWithGoogle" class="google-login-button">
-        <img src="google-icon.png" alt="Google Icon" /> LOG IN WITH GOOGLE
+        <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" style="margin-right: 10px;">
+          <path fill="#4285F4" d="M24 9.5c3.14 0 5.99 1.09 8.25 2.85l6.15-6.15C34.8 3.04 29.6 0 24 0 14.76 0 7 5.83 3.68 14.23l7.14 5.65C12.68 12.09 17.9 9.5 24 9.5z"/>
+          <path fill="#34A853" d="M46.74 24.5c0-1.66-.15-3.25-.44-4.79H24v9.09h12.8c-.58 3.05-2.35 5.64-4.96 7.37v6.1h8.01c4.68-4.31 7.39-10.66 7.39-17.77z"/>
+          <path fill="#FBBC05" d="M10.82 28.73c-1.48-.88-2.78-2.01-3.78-3.37l-7.14 5.65C4.96 37.95 9.85 42 16 42c4.76 0 8.74-1.57 11.66-4.23l-6.93-5.42c-1.28.86-2.9 1.38-4.73 1.38-3.64 0-6.73-2.41-7.98-5.7z"/>
+          <path fill="#EA4335" d="M24 48c6.4 0 11.78-2.12 15.71-5.76l-7.39-5.76c-2.06 1.38-4.69 2.21-8.32 2.21-6.09 0-11.31-3.59-13.53-8.72l-7.14 5.65C7 42.17 14.76 48 24 48z"/>
+        </svg>
+          LOG IN WITH GOOGLE
       </button>
+
 
       <button @click="signUpWithPhoneNumber" class="phone-login-button">
         LOG IN WITH PHONE NUMBER
@@ -38,9 +54,6 @@
         LOG IN WITH FACEBOOK
       </button>
 
-      <!-- Forgot password link -->
-      <p class="forgot-password" @click="goToForgotPass">Forgot your password?</p>
-
       <!-- Terms of Service and Privacy Policy -->
       <p class="terms">
         By clicking continue, you agree to our 
@@ -48,6 +61,7 @@
         <a href="#">Privacy Policy</a>
       </p>
     </div>
+  </div>
   </div>
 </template>
 
@@ -72,9 +86,6 @@ export default {
     signUpWithFacebook() {
       alert('Signing up with Facebook');
     },
-    goToForgotPass() {
-      this.$router.push("/forgotpass"); // Điều hướng đến trang Forgot Password
-    }
   }
 };
 </script>
@@ -94,6 +105,8 @@ body {
   justify-content: center; /* Căn giữa nội dung */
   align-items: center; /* Căn giữa nội dung theo chiều dọc */
   gap: 20px; /* Khoảng cách giữa các phần tử */
+  background-color: #ff85a1; /* Màu hồng đậm hơn, tương tự ảnh */
+
 }
 
 .logo-container {
@@ -105,7 +118,13 @@ body {
   padding: 20px; /* Thêm padding cho phần logo */
   margin-right: 20px; /* Khoảng cách bên phải */
 }
-
+.white-container {
+  display: flex;
+  background-color: #fff; /* Nền trắng cho cả khung */
+  border-radius: 20px; /* Bo góc cho khung */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Thêm hiệu ứng đổ bóng */
+  padding: 50px; /* Padding cho khung trắng */
+}
 .logo img {
   width: 300px; /* Điều chỉnh kích thước hình ảnh */
   height: auto;
@@ -128,7 +147,7 @@ h1 {
 
 h2 {
   color: #ff4d95;
-  margin-top: 0;
+  font-size: 30px;
 }
 
 p {
@@ -149,7 +168,7 @@ p {
 .sign-up-email-button {
   width: 100%;
   padding: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
   background-color: #ff4d95;
   color: white;
   border: none;
@@ -158,17 +177,42 @@ p {
   cursor: pointer;
 }
 
+.already-have-account {
+  color: #999;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.login-link {
+  color: #ff4d95; 
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
 .separator {
   display: flex;
   align-items: center;
+  justify-content: center;
   width: 100%;
   margin: 20px 0;
 }
 
-.separator span {
+.separator .line {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 0 10px;
   flex-grow: 1;
-  text-align: center;
+}
+
+.separator span {
   color: #999;
+  font-weight: bold;
+  padding: 0 10px;
 }
 
 .google-login-button, .phone-login-button, .facebook-login-button {
@@ -183,7 +227,7 @@ p {
 }
 
 .google-login-button {
-  background-color: #fff;
+  background-color: #d0d0d0;
   color: #555;
   border: 1px solid #ddd;
   display: flex;
