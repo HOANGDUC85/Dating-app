@@ -1,102 +1,127 @@
 <template>
   <div class="login-page-container">
     <div class="white-container">
-    <!-- Logo section -->
-    <div class="logo-container">
-      <div class="logo">
-        <img :src="require('@/assets/lovebell.jpg')" alt="Logo" />
-        <h1>LOVE-BELL</h1>
-      </div>
-    </div>
-
-    <!-- Form section -->
-    <div class="form-container">
-      <!-- Create account text -->
-      <h2>Start Dating</h2>
-      <p>Enter your email to login for this web</p>
-
-      <!-- Email input field -->
-      <input type="email" v-model="email" placeholder="email@domain.com" class="email-input" />
-      <input type="password" v-model="password" placeholder="*****" class="password-input" />
-
-      <p class="forgot-password" @click="goToForgotPass">Forgot your password?</p>
-
-      <!-- Sign up with email button -->
-      <button @click="signUpWithEmail" class="sign-up-email-button">Login with email</button>
-
-      <!-- Already have an account? Log in link -->
-      <p class="dont-have-account">
-        Don't have an account? 
-        <a @click="goToLogin" class="login-link">Sign up</a>
-      </p>
-
-      <!-- OR separator -->
-      <div class="separator">
-        <hr class="line">
-        <span>OR</span>
-        <hr class="line">
+      <!-- Logo section -->
+      <div class="logo-container">
+        <div class="logo">
+          <img :src="require('@/assets/lovebell.jpg')" alt="Logo" />
+          <h1>LOVE-BELL</h1>
+        </div>
       </div>
 
+      <!-- Form section -->
+      <div class="form-container">
+        <h2>Start Dating</h2>
+        <p>Enter your email to login for this web</p>
 
-      <!-- Sign in options -->
-      <button @click="signUpWithGoogle" class="google-login-button">
-        <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" style="margin-right: 10px;">
-          <path fill="#4285F4" d="M24 9.5c3.14 0 5.99 1.09 8.25 2.85l6.15-6.15C34.8 3.04 29.6 0 24 0 14.76 0 7 5.83 3.68 14.23l7.14 5.65C12.68 12.09 17.9 9.5 24 9.5z"/>
-    <path fill="#34A853" d="M46.74 24.5c0-1.66-.15-3.25-.44-4.79H24v9.09h12.8c-.58 3.05-2.35 5.64-4.96 7.37v6.1h8.01c4.68-4.31 7.39-10.66 7.39-17.77z"/>
-    <path fill="#FBBC05" d="M10.82 28.73c-1.48-.88-2.78-2.01-3.78-3.37l-7.14 5.65C4.96 37.95 9.85 42 16 42c4.76 0 8.74-1.57 11.66-4.23l-6.93-5.42c-1.28.86-2.9 1.38-4.73 1.38-3.64 0-6.73-2.41-7.98-5.7z"/>
-    <path fill="#EA4335" d="M24 48c6.4 0 11.78-2.12 15.71-5.76l-7.39-5.76c-2.06 1.38-4.69 2.21-8.32 2.21-6.09 0-11.31-3.59-13.53-8.72l-7.14 5.65C7 42.17 14.76 48 24 48z"/>
-  </svg>
-  LOG IN WITH GOOGLE
-</button>
+        <!-- Email input field -->
+        <input
+          type="email"
+          v-model="email"
+          placeholder="email@domain.com"
+          class="email-input"
+        />
+        <input
+          type="password"
+          v-model="password"
+          placeholder="*****"
+          class="password-input"
+        />
 
+        <p class="forgot-password" @click="goToForgotPass">
+          Forgot your password?
+        </p>
 
-      <button @click="signUpWithPhoneNumber" class="phone-login-button">
-        LOG IN WITH PHONE NUMBER
-      </button>
+        <!-- Sign up with email button -->
+        <button @click="loginWithEmail" class="sign-up-email-button">
+          Login with email
+        </button>
 
-      <button @click="signUpWithFacebook" class="facebook-login-button">
-        LOG IN WITH FACEBOOK
-      </button>
+        <p class="dont-have-account">
+          Don't have an account?
+          <a @click="goToLogin" class="login-link">Sign up</a>
+        </p>
 
-      <!-- Terms of Service and Privacy Policy -->
-      <p class="terms">
-        By clicking continue, you agree to our 
-        <a href="#">Terms of Service</a> and 
-        <a href="#">Privacy Policy</a>
-      </p>
+        <div class="separator">
+          <hr class="line" />
+          <span>OR</span>
+          <hr class="line" />
+        </div>
+
+        <!-- Sign in options -->
+        <button @click="loginWithGoogle" class="google-login-button">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 48 48"
+            xmlns="http://www.w3.org/2000/svg"
+            style="margin-right: 10px;"
+          >
+            <!-- SVG content for Google logo -->
+          </svg>
+          LOG IN WITH GOOGLE
+        </button>
+
+        <button @click="loginWithPhoneNumber" class="phone-login-button">
+          LOG IN WITH PHONE NUMBER
+        </button>
+
+        <button @click="loginWithFacebook" class="facebook-login-button">
+          LOG IN WITH FACEBOOK
+        </button>
+
+        <p class="terms">
+          By clicking continue, you agree to our
+          <a href="#">Terms of Service</a> and
+          <a href="#">Privacy Policy</a>
+        </p>
+      </div>
     </div>
-  </div>
   </div>
 </template>
 
 <script>
+import { loginUser } from '@/services/login-service';
+
 export default {
-  name: "LoginPage",
+  name: 'LoginPage',
   data() {
     return {
-      email: ''
+      email: '',
+      password: ''
     };
   },
   methods: {
-    signUpWithEmail() {
-      // Handle email sign-up logic here
-      alert(`Signing up with email: ${this.email}`);
+    async loginWithEmail() {
+      try {
+        const response = await loginUser(this.email, this.password);
+        if (response.status === 200) {
+          alert('Login successful! User ID: ' + response.data);
+          this.$router.push('/dashboard'); // Chuyển hướng sau khi đăng nhập thành công
+        }
+      } catch (error) {
+        alert('Login failed: ' + error.message);
+      }
     },
-    signUpWithGoogle() {
-      alert('Signing up with Google');
+    loginWithGoogle() {
+      alert('Logging in with Google');
     },
-    signUpWithPhoneNumber() {
-      alert('Signing up with Phone Number');
+    loginWithPhoneNumber() {
+      alert('Logging in with Phone Number');
     },
-    signUpWithFacebook() {
-      alert('Signing up with Facebook');
+    loginWithFacebook() {
+      alert('Logging in with Facebook');
     },
     goToForgotPass() {
-      this.$router.push("/forgotpass"); // Điều hướng đến trang Forgot Password
+      this.$router.push('/forgotpass');
+    },
+    goToLogin() {
+      this.$router.push('/register');
     }
   }
 };
 </script>
+
 
 <style scoped>
 /* Thay đổi màu nền của toàn bộ trang */
