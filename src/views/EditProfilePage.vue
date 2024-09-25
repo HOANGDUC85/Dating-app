@@ -1,125 +1,136 @@
 <template>
-    <div class="layout">
-      <!-- Sidebar -->
-      <LoveBellSidebar />
-  
-      <!-- Main Content -->
-      <div class="profile-edit">
-        <!-- Header -->
-        <h1>Chỉnh sửa trang cá nhân</h1>
-  
-        <!-- Profile section -->
-        <div class="profile-section">
-          <img
-            :src="require('@/assets/logo.png')"
-            alt="Profile Picture"
-            class="profile-img"
-          />
-          <div class="profile-info">
-            <h2>Lê Huy</h2>
-            <p>_lee.hyu_</p>
-          </div>
-          <button class="change-btn">Edit Image</button>
+  <div class="layout">
+    <!-- Sidebar -->
+    <LoveBellSidebar />
+
+    <!-- Main Content -->
+    <div class="profile-edit">
+      <!-- Header -->
+      <h1>Chỉnh sửa trang cá nhân</h1>
+
+      <!-- Profile section -->
+      <div class="profile-section">
+        <img :src="require('@/assets/logo.png')" alt="Profile Picture" class="profile-img" />
+        <div class="profile-info">
+          <h2>{{ name }}</h2>
+          <p>{{ username }}</p>
         </div>
-  
-        <!-- Form section -->
-        <div class="form-section">
-          <!-- Input fields -->
-          <div class="input-field">
-            <label for="name">Name</label>
-            <input type="text" id="name" placeholder="Lê Huy" />
-          </div>
-  
-          <div class="input-field">
-            <label for="username">Username</label>
-            <input type="text" id="username" placeholder="_lee.hyu_" />
-          </div>
-  
-          <div class="input-field">
-            <label for="email">Address</label>
-            <input type="text" id="address" placeholder="HCMC" />
-          </div>
-          <div class="input-field">
-            <label for="email">Phone</label>
-            <input type="number" id="phone" placeholder="0123456788" />
-          </div>
-          <div class="input-field">
-            <label for="email">Age</label>
-            <input type="number" id="age" placeholder="21" />
-          </div>
-  
-          <div class="input-field">
-            <label for="email">Email</label>
-            <input type="text" id="email" placeholder="lehuy123@gmail.com" />
-          </div>
-  
-          <div class="input-field">
-            <label for="bio">Bio</label>
-            <textarea id="bio" rows="3" placeholder="Tiểu sử"></textarea>
-            <div class="char-count">0 / 150</div>
-          </div>
-  
-          <div class="gender-selection">
-      <label for="gender">Gender</label>
-      <div class="options">
-        <button 
-          :class="{'selected': gender === 'male'}"
-          @click="selectGender('male')"
-        >MALE</button>
-  
-        <button 
-          :class="{'selected': gender === 'female'}"
-          @click="selectGender('female')"
-        >FEMALE</button>
-  
-        <button 
-          :class="{'selected': gender === 'other'}"
-          @click="selectGender('other')"
-        >OTHER</button>
+        <button class="change-btn">Edit Image</button>
       </div>
-    </div>
-  
-    <div class="input-field">
-      <button class="save-btn">SAVE</button>
-    </div>
+
+      <!-- Form section -->
+      <div class="form-section">
+        <!-- Input fields -->
+        <div class="input-field">
+          <label for="name">Name</label>
+          <input type="text" id="name" v-model="profile.name" />
+        </div>
+
+        <div class="input-field">
+          <label for="username">Username</label>
+          <input type="text" id="username" v-model="profile.username" />
+        </div>
+
+        <div class="input-field">
+          <label for="address">Address</label>
+          <input type="text" id="address" v-model="profile.address" />
+        </div>
+
+        <div class="input-field">
+          <label for="phone">Phone</label>
+          <input type="text" id="phone" v-model="profile.phone" />
+        </div>
+
+        <div class="input-field">
+          <label for="age">Age</label>
+          <input type="number" id="age" v-model="profile.age" />
+        </div>
+
+        <div class="input-field">
+          <label for="email">Email</label>
+          <input type="text" id="email" v-model="profile.email" />
+        </div>
+
+        <div class="input-field">
+          <label for="bio">Bio</label>
+          <textarea id="bio" rows="3" v-model="profile.bio"></textarea>
+          <div class="char-count">{{ charCount }}</div>
+        </div>
+
+        <div class="gender-selection">
+          <label for="gender">Gender</label>
+          <div class="options">
+            <button :class="{ selected: profile.gender === 'MALE' }" @click="selectGender('MALE')">MALE</button>
+            <button :class="{ selected: profile.gender === 'FEMALE' }" @click="selectGender('FEMALE')">FEMALE</button>
+            <button :class="{ selected: profile.gender === 'OTHER' }" @click="selectGender('OTHER')">OTHER</button>
+          </div>
+        </div>
+
+        <div class="input-field">
+          <button class="save-btn" @click="saveProfile">SAVE</button>
         </div>
       </div>
     </div>
-  
-  </template>
+  </div>
+</template>
   
   <script>
-  import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue"; // Adjust the path based on where your Sidebar component is located
+  import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue";
+  import { editUserProfile } from "@/services/editProfile-service"; // Import the API service
   
   export default {
-    name: 'ProfileEdit',
+    name: "ProfileEdit",
     data() {
       return {
-        bio: '',
+        profile: {
+          name: "",
+          username: "",
+          address: "",
+          phone: "",
+          age: "",
+          email: "",
+          bio: "",
+          gender: "",
+        },
         charLimit: 150,
-        gender: '', // Tracks the selected gender
       };
     },
     computed: {
       charCount() {
-        return `${this.bio.length} / ${this.charLimit}`;
+        return `${this.profile.bio.length} / ${this.charLimit}`;
       },
     },
     components: {
       LoveBellSidebar,
     },
     methods: {
-      selectGender(selectedGender) {
-        this.gender = selectedGender;
-      }
+  selectGender(selectedGender) {
+    // Ensure the gender value is uppercase
+    this.profile.gender = selectedGender.toUpperCase();  // Convert gender to uppercase before sending to backend
+  },
+  async saveProfile() {
+    try {
+      const profileData = {
+        name: this.profile.name,
+        age: this.profile.age,
+        bio: this.profile.bio,
+        gender: this.profile.gender,  // Send the updated gender
+      };
+
+      // Use profileData instead of this.profile in the API call
+      await editUserProfile(this.profile.email, profileData);  // Just call the function without assigning it to a variable
+      alert("Profile updated successfully!");
+    } catch (error) {
+      alert("Error updating profile: " + error.message);
     }
+  }
+
+},
   };
   </script>
   
   <style scoped>
-  *{
-    
-  }
+
   /* Layout for sidebar and main content */
   template{
     overflow-y: hidden; /* Tắt tính năng cuộn */
