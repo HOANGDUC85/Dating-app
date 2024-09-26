@@ -97,7 +97,7 @@ export default {
         const response = await loginUser(this.email, this.password);
         if (response.status === 200) {
           alert('Login successful! User ID: ' + response.data);
-          this.$router.push('/dashboard'); // Chuyển hướng sau khi đăng nhập thành công
+          this.$router.push('/homePage'); // Chuyển hướng sau khi đăng nhập thành công
         }
       } catch (error) {
         alert('Login failed: ' + error.message);
