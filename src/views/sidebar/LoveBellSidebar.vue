@@ -13,12 +13,20 @@
           <span>Search</span>
         </li>
         <li class="menu-item">
+          <i class="material-icons">filter</i>
+          <span>Criteria</span>
+        </li>
+        <li class="menu-item">
           <i class="material-icons">notifications</i>
           <span>Thông báo</span>
         </li>
         <li class="menu-item">
           <i class="material-icons">chat</i>
           <span>Message</span>
+        </li>
+        <li class="menu-item">
+          <i class="material-icons">coffee</i>
+          <span>Dating Place</span>
         </li>
         <li class="menu-item">
           <i class="material-icons">warning</i>
@@ -103,7 +111,7 @@
   }
   
   .profile {
-    margin-top: 350px;
+    margin-top: 260px;
   }
   
   .material-icons {
