@@ -1,11 +1,5 @@
 import axios from "axios";
 export const instance = axios.create({
-    baseURL: 'http://localhost:8080/api/v1/users'
+    baseURL: process.env.VITE_PUBLIC_BASE_URL
   });
-  export const Register = {
-    ORIGIN: '/register',
-  }
-  export const Login = {
-    ORIGIN: '/login',
-  }
-  
+
