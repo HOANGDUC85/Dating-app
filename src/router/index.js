@@ -19,12 +19,12 @@ const router = createRouter({
     {
       path: '/changePassFirstLogin',
       name: 'ChangePassFirstLogin',
-      component: ChangePassFirstLogin // Trang Login sẽ là trang mặc định
+      component: ChangePassFirstLogin 
     },
     {
       path: '/registerPage',
       name: 'Register',
-      component: RegisterPage // Trang Login sẽ là trang mặc định
+      component: RegisterPage 
     },
     {
       path: '/youAreSafePage',
