@@ -65,17 +65,17 @@
             phone: "0902123183",
             image: "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/fb8ec78a-120e-4491-87ef-52175c62409b/d77cqnc-c1484e93-6851-407e-9c64-7a74a89f9e04.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcL2ZiOGVjNzhhLTEyMGUtNDQ5MS04N2VmLTUyMTc1YzYyNDA5YlwvZDc3Y3FuYy1jMTQ4NGU5My02ODUxLTQwN2UtOWM2NC03YTc0YTg5ZjllMDQuanBnIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.af4qz0oaAsFOKKxRVlQlmmExfPrugnMMDePdGdCKgPA",
           },
+          {
+            name: "SISTER",
+            phone: "0901243183",
+            image: "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/bfae8f52-0040-4112-bfd1-5a8bf6f939db/width=450/00000-3205839809.jpeg",
+          },
         ],
         policeStations: [
           {
             id: 1,
             contact: "113",
             address: "9 Xa Lộ Hà Nội, Hiệp Phú, Quận 9, Hồ Chí Minh",
-          },
-          {
-            id: 2,
-            contact: "113",
-            address: "Đồn cảnh sát thành phố Thủ Đức",
           },
         ],
       };
@@ -111,11 +111,13 @@
   }
   
   .emergency-button {
-    background-color: #fff;
+    background-color: #ff0000;
     border: 2px solid #000;
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
+    color: #fff;
+    font-weight: bold;
   }
   
   .contact-list {
@@ -130,7 +132,7 @@
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 200px;
-    padding: 20px;
+    padding: 20px 0px;
     text-align: center;
     display: flex;
     flex-direction: column;

@@ -49,15 +49,12 @@
         </div>
 
         <!-- Sign in options -->
-        <button @click="loginWithGoogle" class="google-login-button">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 48 48"
-            xmlns="http://www.w3.org/2000/svg"
-            style="margin-right: 10px;"
-          >
-            <!-- SVG content for Google logo -->
+        <button @click="signUpWithGoogle" class="google-login-button">
+          <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" style="margin-right: 10px;">
+            <path fill="#4285F4" d="M24 9.5c3.14 0 5.99 1.09 8.25 2.85l6.15-6.15C34.8 3.04 29.6 0 24 0 14.76 0 7 5.83 3.68 14.23l7.14 5.65C12.68 12.09 17.9 9.5 24 9.5z"/>
+            <path fill="#34A853" d="M46.74 24.5c0-1.66-.15-3.25-.44-4.79H24v9.09h12.8c-.58 3.05-2.35 5.64-4.96 7.37v6.1h8.01c4.68-4.31 7.39-10.66 7.39-17.77z"/>
+            <path fill="#FBBC05" d="M10.82 28.73c-1.48-.88-2.78-2.01-3.78-3.37l-7.14 5.65C4.96 37.95 9.85 42 16 42c4.76 0 8.74-1.57 11.66-4.23l-6.93-5.42c-1.28.86-2.9 1.38-4.73 1.38-3.64 0-6.73-2.41-7.98-5.7z"/>
+            <path fill="#EA4335" d="M24 48c6.4 0 11.78-2.12 15.71-5.76l-7.39-5.76c-2.06 1.38-4.69 2.21-8.32 2.21-6.09 0-11.31-3.59-13.53-8.72l-7.14 5.65C7 42.17 14.76 48 24 48z"/>
           </svg>
           LOG IN WITH GOOGLE
         </button>
@@ -168,6 +165,7 @@ h1 {
   color: #ff4d95;
   font-size: 36px; /* Kích thước chữ logo */
   margin: 10px 0;
+  text-align: center;
 }
 
 .form-container {
@@ -181,6 +179,7 @@ h1 {
 h2 {
   color: #ff4d95;
   font-size: 30px;
+  text-align: center;
 }
 
 p {

@@ -66,7 +66,7 @@
 
 <script>
 export default {
-  name: "LoginPage",
+  name: "RegisterPage",
   data() {
     return {
       email: ''
@@ -138,6 +138,7 @@ h1 {
   color: #ff4d95;
   font-size: 36px; /* Kích thước chữ logo */
   margin: 10px 0;
+  text-align: center;
 }
 
 .form-container {
@@ -151,6 +152,7 @@ h1 {
 h2 {
   color: #ff4d95;
   font-size: 30px;
+  text-align: center;
 }
 
 p {

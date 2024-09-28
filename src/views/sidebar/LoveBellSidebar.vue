@@ -15,9 +15,9 @@
 
     <!-- Link to Search -->
     <li class="menu-item">
-      <router-link to="/search" class="menu-link">
-        <i class="material-icons">search</i>
-        <span>Search</span>
+      <router-link to="/mapPage" class="menu-link">
+        <i class="material-icons">map</i>
+        <span>Mapping</span>
       </router-link>
     </li>
 
@@ -39,7 +39,7 @@
 
     <!-- Link to Messages -->
     <li class="menu-item">
-      <router-link to="/messages" class="menu-link">
+      <router-link to="/chattingPage" class="menu-link">
         <i class="material-icons">chat</i>
         <span>Message</span>
       </router-link>
@@ -145,7 +145,8 @@ router-link {
 
   
   .menu-item-title {
-    padding: 40px;
+    padding: 35px;
+    margin-left: 30px;
     font-size: 30px;
     font-family: 'Billabong', cursive; /* The Instagram logo font */
   }
