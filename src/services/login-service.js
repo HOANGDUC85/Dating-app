@@ -7,7 +7,7 @@ export const loginUser = async (email, password) => {
       email,
       password,
     });
-    return response.data; // Trả về data nhận được từ server
+    return response.data; // Trả về toàn bộ response từ server
   } catch (error) {
     throw new Error(error.response?.data?.message || "Đăng nhập thất bại");
   }

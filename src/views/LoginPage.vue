@@ -92,9 +92,30 @@ export default {
     async loginWithEmail() {
       try {
         const response = await loginUser(this.email, this.password);
-        if (response.status === 200) {
-          alert('Login successful! User ID: ' + response.data);
-          this.$router.push('/homePage'); // Chuyển hướng sau khi đăng nhập thành công
+        
+        // Kiểm tra nếu status là 200 và message tồn tại
+        if (response.status === 200 && response.message) 
+        {
+          localStorage.setItem('userEmail', this.email);
+          alert(response.message); // Hiển thị thông báo từ server
+
+          // Kiểm tra thông báo yêu cầu thay đổi mật khẩu
+          if (response.message === "Please change your password.") {
+            // Chuyển hướng đến trang thay đổi mật khẩu
+            this.$router.push('/changePassFirstLogin');
+          } else if (response.message === "Login successful.") {
+            // Đăng nhập thành công, lưu token vào localStorage
+            localStorage.setItem('userEmail', this.email);
+            // Chuyển hướng sang trang homePage
+            this.$router.push('/homePage');
+            localStorage.setItem('userToken', response.data.token);
+
+          } else {
+            alert('Unknown response from server.');
+          }
+        } else {
+          // Nếu không thành công, hiển thị thông báo từ backend
+          alert(response.message || 'Đăng nhập thất bại');
         }
       } catch (error) {
         alert('Login failed: ' + error.message);
@@ -110,13 +131,15 @@ export default {
       alert('Logging in with Facebook');
     },
     goToForgotPass() {
-      this.$router.push('/forgotpass');
+      this.$router.push('/forgotPasswordPage');
     },
     goToLogin() {
-      this.$router.push('/register');
+      this.$router.push('/registerPage');
     }
-  }
+}
+
 };
+
 </script>
 
 

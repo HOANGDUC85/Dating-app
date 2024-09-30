@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginPage from '../views/LoginPage.vue'
 import RegisterPage from '@/views/RegisterPage.vue'
+import ForgotPasswordPage from '@/views/ForgotPasswordPage.vue'
 import HomePage from '../views/HomePage.vue'
 import CafePage from '../views/CafePage.vue'
 import CriteriaPage from '../views/CriteriaPage.vue'
@@ -8,6 +9,8 @@ import YouAreSafePage from '../views/YouAreSafePage.vue'
 import MapPage from '../views/MapPage.vue'
 import ChattingPage from '../views/ChattingPage.vue'
 import ChangePassFirstLogin from '@/views/ChangePassFirstLogin.vue'
+import EditProfilePage from '@/views/EditProfilePage.vue'
+import UpdateProfileFirstLogin from '@/views/UpdateProfileFirstLogin.vue'
 const router = createRouter({
   history: createWebHistory(process.env.VITE_PUBLIC_BASE_URL),
   routes: [
@@ -20,6 +23,11 @@ const router = createRouter({
       path: '/changePassFirstLogin',
       name: 'ChangePassFirstLogin',
       component: ChangePassFirstLogin 
+    },
+    {
+      path: '/forgotPasswordPage',
+      name: 'ForgotPasswordPage',
+      component: ForgotPasswordPage 
     },
     {
       path: '/registerPage',
@@ -50,6 +58,16 @@ const router = createRouter({
       path: '/criteriaPage',
       name: 'criteriaPage',
       component: CriteriaPage
+    },
+    {
+      path: '/editProfilePage',
+      name: 'editProfilePage',
+      component: EditProfilePage
+    },
+    {
+      path: '/updateProfileFirstLogin',
+      name: 'updateProfileFirstLogin',
+      component: UpdateProfileFirstLogin
     },
     {
       path: '/mapPage',
