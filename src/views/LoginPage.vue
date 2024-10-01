@@ -92,11 +92,11 @@ export default {
     async loginWithEmail() {
       try {
         const response = await loginUser(this.email, this.password);
-        
         // Kiểm tra nếu status là 200 và message tồn tại
-        if (response.status === 200 && response.message) {
-          alert(response.message); // Hiển thị thông báo từ server
+        if (response.status === 200 && response.message) 
+        {
           localStorage.setItem('userEmail', this.email);
+          alert(response.message); // Hiển thị thông báo từ server
 
           // Kiểm tra thông báo yêu cầu thay đổi mật khẩu
           if (response.message === "Please change your password.") {
@@ -107,8 +107,7 @@ export default {
             localStorage.setItem('userEmail', this.email);
             // Chuyển hướng sang trang homePage
             this.$router.push('/homePage');
-            localStorage.setItem('userToken', response.data.token);
- 
+
           } else {
             alert('Unknown response from server.');
           }
