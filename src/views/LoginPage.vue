@@ -94,10 +94,9 @@ export default {
         const response = await loginUser(this.email, this.password);
         
         // Kiểm tra nếu status là 200 và message tồn tại
-        if (response.status === 200 && response.message) 
-        {
-          localStorage.setItem('userEmail', this.email);
+        if (response.status === 200 && response.message) {
           alert(response.message); // Hiển thị thông báo từ server
+          localStorage.setItem('userEmail', this.email);
 
           // Kiểm tra thông báo yêu cầu thay đổi mật khẩu
           if (response.message === "Please change your password.") {
@@ -109,7 +108,7 @@ export default {
             // Chuyển hướng sang trang homePage
             this.$router.push('/homePage');
             localStorage.setItem('userToken', response.data.token);
-
+ 
           } else {
             alert('Unknown response from server.');
           }
