@@ -11,7 +11,7 @@ export const loginUser = async (email, password) => {
       // Lưu token và email vào localStorage
       localStorage.setItem("userToken", response.data.data);
       localStorage.setItem("userEmail", email);
-      const userToken = localStorage.getItem("userToken");
+      // const userToken = localStorage.getItem("userToken");
       // Gọi API để lấy userId từ email
       const userId = await getLoggedInUser(email);
       console.log(userId);

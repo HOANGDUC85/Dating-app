@@ -65,16 +65,29 @@
 </template>
 
 <script>
+import { registerUser } from "@/services/register-service"; // Import your API service
+
 export default {
   name: "RegisterPage",
   data() {
     return {
-      email: ''
+      email: '',
     };
   },
   methods: {
-    signUpWithEmail() {
-      alert(`Signing up with email: ${this.email}`);
+    async signUpWithEmail() {
+      if (!this.email) {
+        alert("Please enter a valid email.");
+        return;
+      }
+
+      try {
+        // Call the registerUser function from the service
+        const response = await registerUser(this.email);
+        alert(`${response.message} Please check email to get password`);
+      } catch (error) {
+        alert(`Registration failed: ${error.message}`);
+      }
     },
     signUpWithGoogle() {
       alert('Signing up with Google');
@@ -86,7 +99,7 @@ export default {
       alert('Signing up with Facebook');
     },
     goToLogin() {
-      alert('Navigate to login page');
+      this.$router.push('/');
     }
   }
 };

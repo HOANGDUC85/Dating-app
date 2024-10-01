@@ -99,7 +99,7 @@ export default {
           alert(response.message); // Hiển thị thông báo từ server
 
           // Kiểm tra thông báo yêu cầu thay đổi mật khẩu
-          if (response.message === "Please change your password.") {
+          if (response.message === "Please update your profile.") {
             // Chuyển hướng đến trang thay đổi mật khẩu
             this.$router.push('/changePassFirstLogin');
           } else if (response.message === "Login successful.") {
@@ -107,6 +107,7 @@ export default {
             localStorage.setItem('userEmail', this.email);
             // Chuyển hướng sang trang homePage
             this.$router.push('/homePage');
+            localStorage.setItem('userToken', response.data.token);
 
           } else {
             alert('Unknown response from server.');
