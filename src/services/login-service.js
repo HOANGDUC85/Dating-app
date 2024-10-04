@@ -7,18 +7,19 @@ export const loginUser = async (email, password) => {
       email,
       password,
     });
-    if (response.data && response.data.data) {
+    if (response.data.data) {
       // Lưu token và email vào localStorage
       localStorage.setItem("userToken", response.data.data);
       localStorage.setItem("userEmail", email);
       // const userToken = localStorage.getItem("userToken");
       // Gọi API để lấy userId từ email
-      const userId = await getLoggedInUser(email);
-      console.log(userId);
+      const userId = await getLoggedInUser(response.data.data.userId);
+      console.log("userId", userId.userId);
       if (userId) {
-        localStorage.setItem("userId", userId); // Lưu userId vào localStorage
+        localStorage.setItem("userId", userId.userId); // Lưu userId vào localStorage
       }
     }
+    console.log("🚀 ~ loginUser ~ response.data.data:", response.data.data);
 
     return response.data; // Trả về data nhận được từ server
   } catch (error) {

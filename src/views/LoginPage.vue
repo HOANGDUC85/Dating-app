@@ -107,7 +107,6 @@ export default {
             localStorage.setItem('userEmail', this.email);
             // Chuyển hướng sang trang homePage
             this.$router.push('/homePage');
-            localStorage.setItem('userToken', response.data.token);
 
           } else {
             alert('Unknown response from server.');

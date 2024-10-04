@@ -31,7 +31,7 @@
 
       <!-- Link to Notifications -->
       <li class="menu-item">
-        <router-link to="/notifications" class="menu-link">
+        <router-link to="/notification" class="menu-link">
           <i class="material-icons">notifications</i>
           <span>Thông báo</span>
         </router-link>

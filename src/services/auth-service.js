@@ -6,8 +6,11 @@ export const getLoggedInUser = async () => {
   const token = localStorage.getItem("userToken");
   if (token) {
     try {
-      // Giải mã token để lấy thông tin user
       const decodedToken = jwtDecode(token);
+      console.log(
+        "🚀 ~ getLoggedInUser ~ decodedToken.userId:",
+        decodedToken.userId
+      );
       return decodedToken;
       const response = await instance.post("/profile", {
         token,

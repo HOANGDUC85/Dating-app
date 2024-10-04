@@ -12,6 +12,7 @@ import ChangePassFirstLogin from "@/views/ChangePassFirstLogin.vue";
 import EditProfilePage from "@/views/EditProfilePage.vue";
 import UpdateProfileFirstLogin from "@/views/UpdateProfileFirstLogin.vue";
 import ViewProfilePage from "@/views/ViewProfilePage.vue";
+import NotificationPage from "@/views/NotificationPage.vue";
 
 const router = createRouter({
   history: createWebHistory(process.env.VITE_PUBLIC_BASE_URL),
@@ -80,6 +81,11 @@ const router = createRouter({
       path: "/profile",
       name: "profile",
       component: ViewProfilePage,
+    },
+    {
+      path: "/notification",
+      name: "notification",
+      component: NotificationPage,
     },
   ],
 });
