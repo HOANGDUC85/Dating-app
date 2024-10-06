@@ -5,8 +5,6 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <template>
   <header>
-    <HomePage :userId="2" />
-
     <div class="wrapper">
 
       <nav>
