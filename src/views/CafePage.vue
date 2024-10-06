@@ -9,12 +9,12 @@
       <div class="related-places">
         <h2>RELATED DATING PLACE</h2>
         <div class="places-grid">
-          <div v-for="place in paginatedPlaces" :key="place.id" class="place-card">
-            <img :src="place.image" :alt="place.name" class="place-image" />
+          <div v-for="place in paginatedPlaces" :key="place.cafeId" class="place-card">
+            <img :src="place.imageUrl" :alt="place.name" class="place-image" />
             <div class="place-info">
               <h3>{{ place.name }}</h3>
               <p>{{ place.address }}</p>
-              <p class="price">{{ place.price }}</p>
+              <p class="price">{{ formatPriceRange(place.priceRangeMin, place.priceRangeMax) }}</p>
               <button class="view-button" @click="viewDetails(place)">View Details</button>
             </div>
           </div>
@@ -34,9 +34,9 @@
       <div class="modal-content">
         <span class="close-button" @click="closeModal">&times;</span>
         <h2>{{ selectedPlace.name }}</h2>
-        <img :src="selectedPlace.image" :alt="selectedPlace.name" class="modal-image" />
+        <img :src="selectedPlace.imageUrl" :alt="selectedPlace.name" class="modal-image" />
         <p><strong>Address:</strong> {{ selectedPlace.address }}</p>
-        <p><strong>Price Range:</strong> {{ selectedPlace.price }}</p>
+        <p><strong>Price Range:</strong> {{ formatPriceRange(selectedPlace.priceRangeMin, selectedPlace.priceRangeMax) }}</p>
       </div>
     </div>
   </div>
@@ -44,6 +44,7 @@
 
 <script>
 import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue";
+import {getAllCafes} from "@/services/cafe-service"; // Import the service
 
 export default {
   components: {
@@ -54,50 +55,7 @@ export default {
       cafesPerPage: 4,  // Số lượng quán cafe trên mỗi trang
       currentPage: 1,   // Trang hiện tại
       selectedPlace: null,  // Quán cafe được chọn để hiển thị chi tiết
-      relatedPlaces: [
-        {
-          id: 1,
-          name: 'Lagom Cafe',
-          address: '19 Ho Van Hue, Phu Nhuan District',
-          price: '45.000 - 90.000 VND',
-          image: 'https://ik.imagekit.io/tvlk/blog/2022/10/quan-cafe-yen-tinh-quan-1-1.jpg?tr=c-at_max',
-        },
-        {
-          id: 2,
-          name: 'Blanc. Restaurant Saigon',
-          address: '180D Hai Ba Trung, District 1',
-          price: '130.000 - 600.000 VND',
-          image: 'https://ik.imagekit.io/tvlk/blog/2022/10/quan-cafe-yen-tinh-quan-1-1.jpg?tr=c-at_max',
-        },
-        {
-          id: 3,
-          name: 'The Running Bean',
-          address: '115 Ho Tung Mau, District 1',
-          price: '50.000 - 120.000 VND',
-          image: 'https://ik.imagekit.io/tvlk/blog/2022/10/quan-cafe-yen-tinh-quan-1-1.jpg?tr=c-at_max',
-        },
-        {
-          id: 4,
-          name: 'Soul Ben Thanh Restaurant',
-          address: '7 Thu Khoa Huan, District 1',
-          price: '150.000 - 300.000 VND',
-          image: 'https://ik.imagekit.io/tvlk/blog/2022/10/quan-cafe-yen-tinh-quan-1-1.jpg?tr=c-at_max',
-        },
-        {
-          id: 5,
-          name: 'HOME Vietnamese Restaurant',
-          address: '216/4 Dien Bien Phu, District 3',
-          price: '75.000 - 400.000 VND',
-          image: 'https://ik.imagekit.io/tvlk/blog/2022/10/quan-cafe-yen-tinh-quan-1-1.jpg?tr=c-at_max',
-        },
-        {
-          id: 6,
-          name: "S'mores Saigon",
-          address: '1A Phan Ton, District 1',
-          price: '25.000 - 100.000 VND',
-          image: 'https://ik.imagekit.io/tvlk/blog/2022/10/quan-cafe-yen-tinh-quan-1-1.jpg?tr=c-at_max',
-        },
-      ],
+      relatedPlaces: [],  // Đây sẽ là danh sách được lấy từ API
     };
   },
   computed: {
@@ -108,6 +66,7 @@ export default {
 
     // Các quán cafe trên trang hiện tại
     paginatedPlaces() {
+      if (!this.relatedPlaces || this.relatedPlaces.length === 0) return []; // Ensure relatedPlaces is defined and not empty
       const start = (this.currentPage - 1) * this.cafesPerPage;
       const end = start + this.cafesPerPage;
       return this.relatedPlaces.slice(start, end);
@@ -136,6 +95,20 @@ export default {
     closeModal() {
       this.selectedPlace = null;
     },
+    async fetchCafes() {
+      try {
+        const cafes = await getAllCafes();  // Gọi hàm lấy tất cả các quán cafe từ API
+        this.relatedPlaces = cafes;  // Gán dữ liệu vào biến relatedPlaces để hiển thị
+      } catch (error) {
+        console.error(error.message);
+      }
+    },
+    formatPriceRange(min, max) {
+      return `${min} VND - ${max} VND`;  // Định dạng giá cả
+    },
+  },
+  mounted() {
+    this.fetchCafes();  // Gọi API khi component được render
   },
 };
 </script>

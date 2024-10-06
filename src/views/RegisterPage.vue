@@ -23,7 +23,7 @@
 
         <!-- Already have an account? Log in link -->
         <p class="already-have-account">
-          Already have an account? 
+          Already have an account?
           <a @click="goToLogin" class="login-link">Log in</a>
         </p>
 
@@ -55,10 +55,20 @@
 
         <!-- Terms of Service and Privacy Policy -->
         <p class="terms">
-          By clicking continue, you agree to our 
-          <a href="#">Terms of Service</a> and 
+          By clicking continue, you agree to our
+          <a href="#">Terms of Service</a> and
           <a href="#">Privacy Policy</a>
         </p>
+      </div>
+    </div>
+    
+    <!-- Notifications -->
+    <div class="notifications" v-if="notifications.length > 0">
+      <div v-for="notification in notifications" :key="notification.id" :class="['notification', notification.type]">
+        <i :class="iconClass(notification.type)" :style="iconStyle(notification.type)"></i>
+        <span class="message">{{ notification.message }}</span>
+        <button @click="closeNotification(notification.id)">×</button>
+        <div :class="['progress-bar', notification.type]"></div>
       </div>
     </div>
   </div>
@@ -72,41 +82,80 @@ export default {
   data() {
     return {
       email: '',
+      notifications: []
     };
   },
   methods: {
     async signUpWithEmail() {
       if (!this.email) {
-        alert("Please enter a valid email.");
+        this.addNotification("Please enter a valid email.", "error");
         return;
       }
 
       try {
         // Call the registerUser function from the service
         const response = await registerUser(this.email);
-        alert(`${response.message} Please check email to get password`);
+        this.addNotification(`${response.message} Please check email to get password`, "success");
       } catch (error) {
-        alert(`Registration failed: ${error.message}`);
+        this.addNotification(`${error.message}`, "error");
       }
     },
     signUpWithGoogle() {
-      alert('Signing up with Google');
+      this.addNotification('Signing up with Google', "warning");
     },
     signUpWithPhoneNumber() {
-      alert('Signing up with Phone Number');
+      this.addNotification('Signing up with Phone Number', "warning");
     },
     signUpWithFacebook() {
-      alert('Signing up with Facebook');
+      this.addNotification('Signing up with Facebook', "warning");
     },
     goToLogin() {
       this.$router.push('/');
+    },
+    addNotification(message, type) {
+      this.notifications = [{ id: Date.now(), type, message, timeout: 5000 }];
+      setTimeout(() => {
+        this.closeNotification(this.notifications[0]?.id);
+      }, 5000);
+    },
+    closeNotification(id) {
+      this.notifications = this.notifications.filter(notification => notification.id !== id);
+    },
+    iconClass(type) {
+      switch (type) {
+        case "success":
+          return "fas fa-check-circle"; // Font Awesome success icon
+        case "error":
+          return "fas fa-exclamation-circle"; // Font Awesome error icon
+        case "warning":
+          return "fas fa-exclamation-triangle"; // Font Awesome warning icon
+        default:
+          return "";
+      }
+    },
+    iconStyle(type) {
+      switch (type) {
+        case "success":
+          return "color: #4caf50"; // Green icon
+        case "error":
+          return "color: #f44336"; // Red icon
+        case "warning":
+          return "color: #ff9800"; // Yellow icon
+        default:
+          return "color: #000";
+      }
+    },
+    progressBarStyle(timeout) {
+      return {
+        animation: `progress ${timeout}ms linear forwards`,
+        'animation-fill-mode': 'forwards'
+      };
     }
   }
 };
 </script>
 
 <style scoped>
-/* Thay đổi màu nền của toàn bộ trang */
 body {
   background-color: #ffb3c1; /* Màu hồng nền */
   margin: 0;
@@ -175,9 +224,10 @@ p {
 }
 
 .email-input {
-  width: 100%;
+  width: 94%;
   padding: 10px;
   margin-bottom: 20px;
+  margin-left: 20px;
   border-radius: 5px;
   border: 1px solid #ddd;
   font-size: 16px;
@@ -203,7 +253,7 @@ p {
 }
 
 .login-link {
-  color: #ff4d95; 
+  color: #ff4d95;
   text-decoration: none;
   cursor: pointer;
 }
@@ -275,5 +325,91 @@ p {
 .terms a {
   color: #ff4d95;
   text-decoration: none;
+}
+
+/* Existing styles plus notification styles */
+
+.notifications {
+  max-width: 400px;
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  background-color: #fff; /* White background */
+  border: 2px solid #000; /* Black border */
+  position: relative;
+  overflow: hidden;
+}
+
+.notification i {
+  margin-right: 10px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.message {
+  color: #000; /* Black text */
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+button {
+  background: none;
+  border: none;
+  color: #000;
+  font-size: 20px; /* Increase size of the close button */
+  cursor: pointer;
+  margin-left: 20px; /* Move close button further to the right */
+}
+
+/* Progress bar at the bottom */
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 5px;
+  width: 100%;
+  animation: progress 5s linear forwards;
+}
+
+/* Colors for the progress bar based on notification type */
+.success.progress-bar {
+  background-color: #4caf50; /* Green progress bar for success */
+}
+
+.error.progress-bar {
+  background-color: #f44336; /* Red progress bar for error */
+}
+
+.warning.progress-bar {
+  background-color: #ff9800; /* Yellow progress bar for warning */
+}
+
+/* Animation for progress bar countdown */
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0;
+  }
+}
+
+.progress-bar {
+  animation: progress 5000ms linear forwards;
+  animation-fill-mode: forwards;
 }
 </style>

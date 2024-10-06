@@ -18,10 +18,16 @@
           <h3>Compatible Objects</h3>
         </div>
         <div class="matches-grid">
-          <div class="match-item" v-for="match in matches" :key="match.name">
-            <img :src="match.imageUrl" class="match-image" />
-            <div class="match-info">
-              <span class="match-name">{{ match.name }}</span>
+          <div class="matches-grid">
+            <div
+              class="match-item"
+              v-for="match in matches"
+              :key="match.targetUserId"
+            >
+              <img :src="match.targetUserAvatar" class="match-image" />
+              <div class="match-info">
+                <span class="match-name">{{ match.targetUserName }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -32,7 +38,7 @@
         <transition name="swipe" @after-enter="resetCardPosition">
           <div
             class="profile-card"
-            v-if="currentProfileVisible"
+            v-if="currentProfile"
             :class="{
               'swipe-left': swipeLeft,
               'swipe-right': swipeRight,
@@ -40,18 +46,18 @@
               'show-dislike': showDislike,
             }"
           >
-            <img
-              :src="currentProfile.imageUrl"
-              class="profile-image"
-              alt="profile image"
-            />
+          <img
+            v-if="currentProfile.avatar || currentProfile.imageUrl"
+            :src="currentProfile.avatar ? currentProfile.avatar : currentProfile.imageUrl"
+            class="profile-image"
+            alt="profile image"
+          />
             <div class="like-dislike-text" v-if="showLike">LIKE</div>
             <div class="like-dislike-text" v-if="showDislike">DISLIKE</div>
             <div class="profile-info">
               <h2>{{ currentProfile.name }} - {{ currentProfile.age }}</h2>
               <p>
                 <i class="fas fa-map-marker-alt"></i>
-                <!-- Icon vị trí -->
                 Cách xa {{ currentProfile.distance }}
               </p>
             </div>
@@ -75,6 +81,8 @@
 
 <script>
 import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue";
+// import { getMatchesForUser } from "@/services/match-service";
+import { loadAllProfiles } from "@/services/profile-service";
 
 export default {
   name: "App",
@@ -84,75 +92,82 @@ export default {
       swipeLeft: false,
       swipeRight: false,
       showDislike: false, // Thêm biến để hiển thị "dislike"
-    showLike: false,    // Thêm biến để hiển thị "like"
-      currentProfile: {
-        name: "Kewtie",
-        age: 21,
-        distance: "10 km",
-        imageUrl:
-          "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474076CJH/hinh-chibi-avatar-dep_031501308.jpg",
-      },
-      matches: [
-        {
-          name: "Rann",
-          imageUrl:
-            "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474076CJH/hinh-chibi-avatar-dep_031501308.jpg",
-        },
-        {
-          name: "Kylie",
-          imageUrl:
-            "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474076CJH/hinh-chibi-avatar-dep_031501308.jpg",
-        },
-        {
-          name: "Huy",
-          imageUrl:
-            "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474076CJH/hinh-chibi-avatar-dep_031501308.jpg",
-        },
-        {
-          name: "Doanh",
-          imageUrl:
-            "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474076CJH/hinh-chibi-avatar-dep_031501308.jpg",
-        },
-        {
-          name: "Kien",
-          imageUrl:
-            "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474076CJH/hinh-chibi-avatar-dep_031501308.jpg",
-        },
-        {
-          name: "Duc",
-          imageUrl:
-            "https://img.tripi.vn/cdn-cgi/image/width=700,height=700/https://gcs.tripi.vn/public-tripi/tripi-feed/img/474076CJH/hinh-chibi-avatar-dep_031501308.jpg",
-        },
-      ],
+      showLike: false, // Thêm biến để hiển thị "like"
+      currentProfile: {}, // Khởi tạo đối tượng rỗng thay vì null
+
+      likedProfiles: [], // Danh sách các hồ sơ đã thích
+      dislikedProfiles: [], // Danh sách các hồ sơ đã không thích
+      matches: [], // Dữ liệu các hồ sơ khác
     };
   },
   components: {
     LoveBellSidebar,
   },
   methods: {
+    // async loadMatches() {
+    //   try {
+    //     const userId = localStorage.getItem('userId');
+    //     if (!userId) {
+    //       alert("User ID not found. Please log in again.");
+    //       return;
+    //     }
+    //     const matchData = await getMatchesForUser(userId);
+    //     console.log("Match data:", matchData);
+    //     this.matches = matchData;
+
+    //     // Đặt profile hiện tại thành match đầu tiên
+    //     if (this.matches.length > 0) {
+    //       this.currentProfile = this.matches[0];
+    //     }
+    //   } catch (error) {
+    //     console.error("Error loading matches:", error.message);
+    //   }
+    // },
+
+    async loadProfiles() {
+  try {
+    const profileData = await loadAllProfiles();
+    console.log("Profiles loaded:", profileData);
+
+    // Đặt hồ sơ hiện tại là hồ sơ đầu tiên
+    if (profileData.length > 0) {
+      this.currentProfile = profileData[0];
+    }
+
+    // Kiểm tra xem profile hiện tại có avatar hay imageUrl không
+    if (!this.currentProfile.avatar && !this.currentProfile.imageUrl) {
+      console.warn("No image URL found for the current profile.");
+    }
+  } catch (error) {
+    console.error('Failed to load profiles:', error);
+  }
+},
+
     like() {
-    this.swipeRight = true;
-    this.swipeLeft = false;
-    this.showLike = true; // Hiển thị từ "like"
-    setTimeout(() => {
-      this.changeProfile();
-      this.showLike = false; // Tắt hiển thị sau khi chuyển profile
-    }, 500); // Time for animation to complete
-  },
-  dislike() {
-    this.swipeLeft = true;
-    this.swipeRight = false;
-    this.showDislike = true; // Hiển thị từ "dislike"
-    setTimeout(() => {
-      this.changeProfile();
-      this.showDislike = false; // Tắt hiển thị sau khi chuyển profile
-    }, 500); // Time for animation to complete
-  },
+      this.likedProfiles.push(this.currentProfile); // Lưu hồ sơ đã thích
+      this.swipeRight = true;
+      this.swipeLeft = false;
+      this.showLike = true; // Hiển thị từ "like"
+      setTimeout(() => {
+        this.changeProfile();
+        this.showLike = false; // Tắt hiển thị sau khi chuyển profile
+      }, 500); // Time for animation to complete
+    },
+    dislike() {
+      this.dislikedProfiles.push(this.currentProfile); // Lưu hồ sơ đã không thích
+      this.swipeLeft = true;
+      this.swipeRight = false;
+      this.showDislike = true; // Hiển thị từ "dislike"
+      setTimeout(() => {
+        this.changeProfile();
+        this.showDislike = false; // Tắt hiển thị sau khi chuyển profile
+      }, 500); // Time for animation to complete
+    },
     superLike() {
       alert("You super liked the profile");
     },
     changeProfile() {
-      // Switch to the next profile (you can improve logic for changing profiles here)
+      // Logic để chuyển đổi sang hồ sơ tiếp theo
       this.currentProfileVisible = false;
       setTimeout(() => {
         this.currentProfile =
@@ -164,6 +179,11 @@ export default {
       this.swipeLeft = false;
       this.swipeRight = false;
     },
+    
+  },
+  async mounted() {
+    await this.loadProfiles();  // Gọi API khi component được mounted
+
   },
 };
 </script>
@@ -244,6 +264,7 @@ export default {
   width: 100%;
   height: auto;
   border-radius: 10px;
+  object-fit: cover; /* Đảm bảo ảnh phù hợp với container */
 }
 .profile-info {
   text-align: left;
@@ -375,6 +396,4 @@ export default {
   opacity: 1;
   color: #ff5a5f; /* Màu đỏ cho "dislike" */
 }
-
-
 </style>

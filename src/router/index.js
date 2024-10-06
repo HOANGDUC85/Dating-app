@@ -13,6 +13,7 @@ import EditProfilePage from "@/views/EditProfilePage.vue";
 import UpdateProfileFirstLogin from "@/views/UpdateProfileFirstLogin.vue";
 import ViewProfilePage from "@/views/ViewProfilePage.vue";
 import NotificationPage from "@/views/NotificationPage.vue";
+import SuccessToast from "@/views/Test.vue";
 
 const router = createRouter({
   history: createWebHistory(process.env.VITE_PUBLIC_BASE_URL),
@@ -86,6 +87,11 @@ const router = createRouter({
       path: "/notification",
       name: "notification",
       component: NotificationPage,
+    },
+    {
+      path: "/a",
+      name: "a",
+      component: SuccessToast,
     },
   ],
 });

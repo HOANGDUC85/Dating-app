@@ -9,19 +9,19 @@
       </div>
       <ul class="contact-list">
         <li
-          v-for="(contact, index) in contacts"
-          :key="index"
+           v-for="contact in contacts"
+              :key="contact.targetUserId"
           class="contact-item"
           @click="selectContact(contact)"
         >
           <img
-            :src="contact.profileImage"
+            :src="contact.targetUserAvatar"
             alt="Contact Image"
             class="contact-avatar"
           />
           <div class="contact-info">
-            <span class="contact-name">{{ contact.name }}</span>
-            <span class="contact-message">{{ contact.message }}</span>
+            <span class="contact-name">{{ contact.targetUserName }}</span>
+            <span class="contact-message">{{ contact.targetUserName }}</span>
           </div>
         </li>
       </ul>
@@ -61,7 +61,7 @@
             class="chat-avatar"
             alt="Profile"
           />
-            <p>{{ message.text }}</p>
+          <p>{{ message.text }}</p>
         </div>
       </div>
       <div v-if="selectedContact" class="chat-input">
@@ -74,6 +74,7 @@
 
 <script>
 import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue";
+import { getMatchesForUser, getMessagesForMatch, sendMessageToMatch } from "@/services/match-service"; // Import API gửi tin nhắn
 
 export default {
   components: {
@@ -82,58 +83,64 @@ export default {
   data() {
     return {
       profileName: "Message",
-      contacts: [
-        {
-          name: "Văn A",
-          message: "Đang hoạt động",
-          profileImage: "https://i.pinimg.com/736x/c4/20/f9/c420f9bec9be8fa4a4e453dae12976e0.jpg",
-          messages: [],
-        },
-        {
-          name: "22.Nastore",
-          message: "Hoạt động 10 phút trước",
-          profileImage: "https://i.pinimg.com/236x/76/18/38/761838420398ec0b0b412b46b71f2ab2.jpg",
-          messages: [],
-        },
-        {
-          name: "Jack Lane",
-          message: "Hoạt động 30 phút trước",
-          profileImage: "https://image.civitai.com/xG1nkqKTMzGDvpLrqFT7WA/bfae8f52-0040-4112-bfd1-5a8bf6f939db/width=450/00000-3205839809.jpeg",
-          messages: [
-            { text: "Bạn ơi,...", time: "17:20 11/6/22", sender: "them" },
-            { text: "Xin chào", time: "16:35 17/12/23", sender: "me" },
-          ],
-        },
-      ],
+      contacts: [], // Danh sách contacts sẽ được lấy từ API
       selectedContact: null,
       newMessage: "",
+      userId: 2, // Thay bằng ID thực của người dùng đăng nhập
     };
   },
   methods: {
-    selectContact(contact) {
-      this.selectedContact = contact;
-    },
-    sendMessage() {
-      if (this.newMessage.trim() !== "") {
-        const sentMessage = {
-          text: this.newMessage,
-          time: new Date().toLocaleTimeString(),
-          sender: "me",
-        };
-        this.selectedContact.messages.push(sentMessage);
-        
-        // Reset input sau khi gửi tin nhắn
-        this.newMessage = "";
+    async getMatchesForUser() {
+      try {
+        const userId = this.userId; // Lấy ID của người dùng hiện tại
 
-        // Thêm chức năng trả lời tự động
-        setTimeout(() => {
-          const autoReplyMessage = {
-            text: "Xin chào!",
-            time: new Date().toLocaleTimeString(),
-            sender: "them", // Tin nhắn từ hệ thống hoặc người khác
+        const contactsData = await getMatchesForUser(userId); // Gọi API để lấy danh sách contacts
+        this.contacts = contactsData; // Cập nhật danh sách contacts
+      } catch (error) {
+        console.error("Error loading contacts:", error.message);
+      }
+    },
+    async selectContact(contact) {
+      try {
+        this.selectedContact = contact;
+
+        // Gọi API để lấy danh sách tin nhắn cho matchId
+        const messages = await getMessagesForMatch(contact.matchId);
+        // Gán danh sách tin nhắn cho selectedContact
+        this.selectedContact.messages = messages.map(message => ({
+          text: message.content,
+          sender: message.senderId === this.userId ? "me" : "them",
+          time: message.createdAt, // Sử dụng định dạng thời gian từ API
+        }));
+      } catch (error) {
+        console.error("Error loading messages:", error.message);
+      }
+    },
+    async sendMessage() {
+      if (this.newMessage.trim() !== "") {
+        // Gửi tin nhắn thông qua API
+        try {
+          const message = await sendMessageToMatch(
+            this.selectedContact.matchId,
+            this.userId, // ID của người gửi
+            this.selectedContact.targetUserId, // ID của người nhận
+            this.newMessage // Nội dung tin nhắn
+          );
+
+          // Sau khi gửi thành công, thêm tin nhắn vào giao diện
+          const sentMessage = {
+            text: message.content,
+            time: message.createdAt,
+            sender: "me",
           };
-          this.selectedContact.messages.push(autoReplyMessage);
-        }, 1000); // Trả lời tự động sau 1 giây
+
+          this.selectedContact.messages.push(sentMessage);
+
+          // Reset input sau khi gửi tin nhắn
+          this.newMessage = "";
+        } catch (error) {
+          console.error("Error sending message:", error.message);
+        }
       }
     },
     callUser() {
@@ -144,10 +151,12 @@ export default {
     },
     viewInfo() {
       alert("Hiển thị thông tin người dùng...");
-    }
+    },
+  },
+  async mounted() {
+    await this.getMatchesForUser(); // Gọi hàm loadContacts khi component được mount để lấy dữ liệu contacts
   },
 };
-
 
 </script>
 
@@ -159,7 +168,7 @@ export default {
 }
 
 .sidebar {
-  width: 300px;
+  width: 250px !important; /* Thêm !important để đảm bảo quy tắc được áp dụng */
   background-color: #fafafa;
   border-right: 1px solid #e6e6e6;
   overflow-y: auto;
@@ -347,5 +356,4 @@ export default {
 .material-icons {
   font-size: 24px; /* Kích thước biểu tượng Material Icons */
 }
-
 </style>
