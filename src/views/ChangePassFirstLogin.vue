@@ -74,8 +74,8 @@ export default {
 
 
       // Lấy email từ localStorage, nếu email không tồn tại thì báo lỗi
-      const email = localStorage.getItem('userEmail');
-      console.log(localStorage.getItem('userEmail'));
+      const email = localStorage.getItem('email');
+      console.log(localStorage.getItem('email'));
 
       if (!email) {
         alert('Email is missing. Please log in again.');
@@ -89,7 +89,7 @@ export default {
 
         // Chuyển hướng về trang chủ sau khi thay đổi mật khẩu thành công
         if (response.status === 200) {
-          this.$router.push('/updateProfileFirstLogin');
+          this.$router.push('/');
         }
       } catch (error) {
         alert(error.message);

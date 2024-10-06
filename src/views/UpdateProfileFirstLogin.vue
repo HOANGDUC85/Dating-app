@@ -5,16 +5,10 @@
         <h2>Update Profile</h2>
         <p>Please update your profile to continue using the app</p>
 
-        <!-- Email input field -->
+        <!-- File upload input -->
         <div class="input-field">
-          <label for="email">Email:</label>
-          <input
-            type="email"
-            v-model="email"
-            placeholder="Email"
-            class="string-input"
-            readonly
-          />
+          <label for="files">Upload Photos:</label>
+          <input type="file" @change="handleFileUpload" multiple />
         </div>
 
         <!-- Name input field -->
@@ -30,9 +24,7 @@
 
         <!-- Age slider field -->
         <div class="age-slider-container">
-          <label for="ageRange"
-            >Age: <strong>{{ age }}</strong></label
-          >
+          <label for="ageRange">Age: <strong>{{ age }}</strong></label>
           <input
             type="range"
             v-model="age"
@@ -102,11 +94,11 @@ import { updateProfile } from "@/services/update-profile-service";
 export default {
   data() {
     return {
-      email: "", // Get email from localStorage or API
       name: "",
       age: 25, // Default value for the slider
       bio: "",
       gender: "",
+      files: [], // Tệp ảnh
       bioMaxLength: 150, // Max length for bio
       profileError: "", // Error message display
     };
@@ -121,12 +113,6 @@ export default {
       slider.style.background = `linear-gradient(90deg, #ff4d95 ${percentage}%, #ccc ${percentage}%)`;
     },
     async handleChangeProfile() {
-      const email = localStorage.getItem("userEmail");
-      if (!email) {
-        this.profileError = "Email is missing. Please log in again.";
-        return;
-      }
-
       // Kiểm tra các trường bắt buộc
       if (!this.name || !this.age || !this.bio || !this.gender) {
         this.profileError = "All fields are required.";
@@ -134,13 +120,15 @@ export default {
       }
 
       try {
+        // Gọi updateProfile với FormData bao gồm thông tin và các file
         const response = await updateProfile(
-          email,
           this.name,
           this.age,
           this.bio,
-          this.gender
+          this.gender,
+          this.files
         );
+
         alert(response.message);
 
         if (response.status === 200) {
@@ -150,6 +138,10 @@ export default {
         this.profileError = error.message;
       }
     },
+    handleFileUpload(event) {
+      this.files = Array.from(event.target.files);
+      console.log("Files selected:", this.files);
+    },
   },
   computed: {
     remainingBioChars() {
@@ -157,13 +149,12 @@ export default {
     },
   },
   mounted() {
-    this.email = localStorage.getItem("userEmail");
+    console.log("Mounted and ready");
     this.updateSliderStyle();
   },
 };
 </script>
 <style>
-
 .login-page-container {
   display: flex;
   height: 100vh;
