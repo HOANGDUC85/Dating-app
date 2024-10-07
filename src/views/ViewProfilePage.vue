@@ -9,7 +9,7 @@
       <div class="content">
         <!-- Profile Header -->
         <div class="profile-header">
-          <img :src="require('@/assets/logo.png')" alt="Profile Image" class="profile-image" />
+          <img :src="profileData.avatar" alt="Profile Image" class="profile-image" />
           <div class="profile-info">
             <h2>{{ profileData.name }} - {{ profileData.age }} - {{ profileData.gender }}</h2>
             <p>{{ profileData.bio }}</p>
@@ -30,21 +30,19 @@
 
 <script>
 import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue";
-import { getProfileById } from "@/services/viewProfile-service.js"; // Import hàm đã sửa đổi
-import { getLoggedInUser } from "@/services/auth-service.js";
+import { getMyProfile } from "@/services/viewProfile-service.js"; // Import hàm lấy profile
 
 export default {
   data() {
     return {
       profileData: {
-        userId: "", // Avatar URL
+        avatar: "", // Avatar URL
         name: "", // Name
         age: "", // Age
         gender: "", // Gender
         bio: "", // Bio
         photos: [] // Photos array
-      },
-      loggedInUser: null // Thông tin người dùng đã đăng nhập
+      }
     };
   },
   components: {
@@ -52,29 +50,24 @@ export default {
   },
   async mounted() {
     try {
-      // Lấy thông tin người dùng đã đăng nhập từ token
-      this.loggedInUser = getLoggedInUser();
-      console.log("🚀 ~ mounted ~ loggedInUser:", this.loggedInUser);
-
-      if (this.loggedInUser && this.loggedInUser.userId) {
-        // Fetch the profile data từ backend bằng userId của người dùng đã đăng nhập
-        const profile = await getProfileById(this.loggedInUser.userId);
-        
-        // Gán dữ liệu từ backend vào profileData
-        this.profileData.name = profile.name || "Unnamed User";
-        this.profileData.age = profile.age || "Unknown";
-        this.profileData.gender = profile.gender || "Unknown";
-        this.profileData.bio = profile.bio || "No bio available";
-        this.profileData.photos = profile.photos || [];
-      } else {
-        console.error("No logged-in user found.");
-      }
+      // Gọi API lấy thông tin profile người dùng
+      const profileResponse = await getMyProfile();
+      const profile = profileResponse.data; // Lấy data từ response
+      
+      // Gán dữ liệu từ API vào profileData
+      this.profileData.avatar = profile.avatar || "Unnamed User";
+      this.profileData.name = profile.name || "Unnamed User";
+      this.profileData.age = profile.age || "Unknown";
+      this.profileData.gender = profile.gender || "Unknown";
+      this.profileData.bio = profile.bio || "No bio available";
+      this.profileData.photos = profile.photos || [];
     } catch (error) {
       console.error("Error loading profile data:", error);
     }
   }
 };
 </script>
+
 
 <style>
 /* Các style không thay đổi */
