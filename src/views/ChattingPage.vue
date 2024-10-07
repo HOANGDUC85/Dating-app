@@ -3,14 +3,14 @@
     <LoveBellSidebar />
 
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar-chat">
       <div class="profile">
         <h3 class="profile-name">{{ profileName }}</h3>
       </div>
       <ul class="contact-list">
         <li
-           v-for="contact in contacts"
-              :key="contact.targetUserId"
+          v-for="contact in contacts"
+          :key="contact.targetUserId"
           class="contact-item"
           @click="selectContact(contact)"
         >
@@ -21,7 +21,7 @@
           />
           <div class="contact-info">
             <span class="contact-name">{{ contact.targetUserName }}</span>
-            <span class="contact-message">{{ contact.targetUserName }}</span>
+            <span class="contact-message">{{ contact.lastMessage }}</span>
           </div>
         </li>
       </ul>
@@ -49,21 +49,27 @@
         </div>
       </div>
       <div v-if="selectedContact" class="chat-content">
-        <div
-          class="message"
-          v-for="(message, index) in selectedContact.messages"
-          :key="index"
-          :class="{ 'my-message': message.sender === 'me' }"
-        >
-          <img
-            v-if="message.sender !== 'me'"
-            :src="selectedContact.profileImage"
-            class="chat-avatar"
-            alt="Profile"
-          />
-          <p>{{ message.text }}</p>
+        <div v-if="selectedContact" class="chat-content">
+          <div
+            class="message"
+            v-for="(message, index) in selectedContact.messages"
+            :key="index"
+            :class="{
+              'my-message': message.sender === 'me',
+              'other-message': message.sender !== 'me',
+            }"
+          >
+            <img
+              v-if="message.sender !== 'me'"
+              :src="selectedContact.profileImage"
+              class="chat-avatar"
+              alt="Profile"
+            />
+            <p>{{ message.text }}</p>
+          </div>
         </div>
       </div>
+
       <div v-if="selectedContact" class="chat-input">
         <input v-model="newMessage" placeholder="Nhắn tin..." />
         <button @click="sendMessage">Gửi</button>
@@ -74,7 +80,11 @@
 
 <script>
 import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue";
-import { getMatchesForUser, getMessagesForMatch, sendMessageToMatch } from "@/services/match-service"; // Import API gửi tin nhắn
+import {
+  getMatchesForUser,
+  getMessagesForMatch,
+  sendMessageToMatch,
+} from "@/services/match-service"; // Import API gửi tin nhắn
 
 export default {
   components: {
@@ -86,63 +96,97 @@ export default {
       contacts: [], // Danh sách contacts sẽ được lấy từ API
       selectedContact: null,
       newMessage: "",
-      userId: 2, // Thay bằng ID thực của người dùng đăng nhập
+      userId: null, // Lấy ID của người dùng từ JWT
+      token: localStorage.getItem("userToken"), // Giả sử bạn lưu JWT trong localStorage
+      currentUserId: null,
     };
   },
   methods: {
     async getMatchesForUser() {
       try {
-        const userId = this.userId; // Lấy ID của người dùng hiện tại
-
-        const contactsData = await getMatchesForUser(userId); // Gọi API để lấy danh sách contacts
+        // Gọi API để lấy danh sách contacts
+        const contactsData = await getMatchesForUser();
         this.contacts = contactsData; // Cập nhật danh sách contacts
       } catch (error) {
         console.error("Error loading contacts:", error.message);
       }
     },
     async selectContact(contact) {
-      try {
-        this.selectedContact = contact;
+  try {
+    this.selectedContact = contact;
 
-        // Gọi API để lấy danh sách tin nhắn cho matchId
-        const messages = await getMessagesForMatch(contact.matchId);
-        // Gán danh sách tin nhắn cho selectedContact
-        this.selectedContact.messages = messages.map(message => ({
-          text: message.content,
-          sender: message.senderId === this.userId ? "me" : "them",
-          time: message.createdAt, // Sử dụng định dạng thời gian từ API
-        }));
-      } catch (error) {
-        console.error("Error loading messages:", error.message);
-      }
-    },
+    const token = this.token;
+    if (!token || typeof token !== "string" || token === "1") {
+      console.error("Token không hợp lệ:", token);
+      alert("Vui lòng đăng nhập lại.");
+      return;
+    }
+
+    const messages = await getMessagesForMatch(contact.matchId, token);
+    this.selectedContact.messages = messages.map((message) => ({
+      text: message.content,
+      time: message.createdAt,
+      sender: message.senderId === this.currentUserId ? "me" : "them",
+    }));
+  } catch (error) {
+    console.error("Error loading messages:", error);
+    alert("Không thể tải tin nhắn.");
+  }
+},
+
+
     async sendMessage() {
-      if (this.newMessage.trim() !== "") {
-        // Gửi tin nhắn thông qua API
-        try {
-          const message = await sendMessageToMatch(
-            this.selectedContact.matchId,
-            this.userId, // ID của người gửi
-            this.selectedContact.targetUserId, // ID của người nhận
-            this.newMessage // Nội dung tin nhắn
-          );
+      if (
+        !this.newMessage ||
+        typeof this.newMessage !== "string" ||
+        this.newMessage.trim() === ""
+      ) {
+        alert("Nội dung tin nhắn không hợp lệ. Vui lòng nhập lại.");
+        return;
+      }
 
-          // Sau khi gửi thành công, thêm tin nhắn vào giao diện
-          const sentMessage = {
-            text: message.content,
-            time: message.createdAt,
-            sender: "me",
-          };
-
-          this.selectedContact.messages.push(sentMessage);
-
-          // Reset input sau khi gửi tin nhắn
-          this.newMessage = "";
-        } catch (error) {
-          console.error("Error sending message:", error.message);
+      try {
+        // Lấy token từ localStorage
+        const token = localStorage.getItem("userToken");
+        if (!token || typeof token !== "string" || token === "1") {
+          console.error("Token không hợp lệ:", token);
+          alert("Vui lòng đăng nhập lại.");
+          return;
         }
+
+        console.log(
+          "Sending message with matchId:",
+          this.selectedContact.matchId
+        );
+        console.log("Token being used:", token);
+        console.log("Content:", this.newMessage);
+
+        // Gửi tin nhắn tới server
+        const sentMessage = await sendMessageToMatch(
+          this.selectedContact.matchId,
+          this.newMessage,
+          token
+        );
+
+        // Thêm tin nhắn vào giao diện chat
+        this.selectedContact.messages.push({
+          text: sentMessage.content,
+          time: sentMessage.createdAt,
+          sender: "me",
+        });
+
+        // Reset input sau khi gửi tin nhắn
+        this.newMessage = "";
+      } catch (error) {
+        console.error("Error sending message:", error);
+        alert(
+          `Không thể gửi tin nhắn: ${
+            error.response?.data?.message || error.message
+          }`
+        );
       }
     },
+
     callUser() {
       alert("Đang gọi điện...");
     },
@@ -154,10 +198,19 @@ export default {
     },
   },
   async mounted() {
+    // Giả sử userToken là JWT và bạn có thể giải mã nó để lấy thông tin userId
+  const token = this.token;
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      this.currentUserId = payload.userId; // Lấy userId từ payload của JWT
+    } catch (error) {
+      console.error("Error decoding token:", error);
+    }
+  }
     await this.getMatchesForUser(); // Gọi hàm loadContacts khi component được mount để lấy dữ liệu contacts
   },
 };
-
 </script>
 
 <style scoped>
@@ -167,8 +220,8 @@ export default {
   font-family: Arial, sans-serif;
 }
 
-.sidebar {
-  width: 250px !important; /* Thêm !important để đảm bảo quy tắc được áp dụng */
+.sidebar-chat {
+  width: 450px !important; /* Thêm !important để đảm bảo quy tắc được áp dụng */
   background-color: #fafafa;
   border-right: 1px solid #e6e6e6;
   overflow-y: auto;
@@ -263,14 +316,17 @@ export default {
   word-wrap: break-word; /* Cho phép ngắt dòng nếu văn bản quá dài */
 }
 
+.other-message {
+  justify-content: flex-start; /* Tin nhắn của người nhận căn về bên trái */
+}
+
 .my-message {
-  justify-content: flex-end;
+  justify-content: flex-end; /* Tin nhắn của người gửi căn về bên phải */
+  align-self: flex-end; /* Căn tin nhắn của người gửi về bên phải của chính khung chat */
   background-color: #3897f0;
   color: white;
-  align-self: flex-end;
-  width: auto; /* Đảm bảo chiều rộng tự động thay đổi theo nội dung */
-  max-width: fit-content; /* Đảm bảo chiều rộng không vượt quá nội dung */
   border-radius: 15px;
+  max-width: fit-content; /* Đảm bảo chiều rộng tự động thay đổi theo nội dung */
 }
 
 .message p {
@@ -288,6 +344,10 @@ export default {
   display: inline-block; /* Để tin nhắn co lại theo nội dung */
   width: auto; /* Đảm bảo chiều rộng tự động thay đổi theo nội dung */
   max-width: fit-content; /* Giới hạn chiều rộng tối đa theo nội dung */
+}
+
+.other-message p {
+  background-color: #f1f1f1; /* Màu nền của tin nhắn người nhận */
 }
 
 .message small {

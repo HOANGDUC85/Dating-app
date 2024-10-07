@@ -24,7 +24,10 @@
               v-for="match in matches"
               :key="match.targetUserId"
             >
-              <img :src="match.targetUserAvatar" class="match-image" />
+              <img
+                :src="getAuthorizedImageUrl(match.targetUserAvatar)"
+                class="match-image"
+              />
               <div class="match-info">
                 <span class="match-name">{{ match.targetUserName }}</span>
               </div>
@@ -39,6 +42,7 @@
           <div
             class="profile-card"
             v-if="currentProfile"
+            :key="profileIndex"
             :class="{
               'swipe-left': swipeLeft,
               'swipe-right': swipeRight,
@@ -46,12 +50,15 @@
               'show-dislike': showDislike,
             }"
           >
-          <img
-            v-if="currentProfile.avatar || currentProfile.imageUrl"
-            :src="currentProfile.avatar ? currentProfile.avatar : currentProfile.imageUrl"
-            class="profile-image"
-            alt="profile image"
-          />
+            <img
+              v-if="currentProfile.avatar || currentProfile.imageUrl"
+              :src="
+                getAuthorizedImageUrl(currentProfile.avatar)
+                  ? getAuthorizedImageUrl(currentProfile.avatar)
+                  : getAuthorizedImageUrl(currentProfile.imageUrl)
+              "
+              alt="profile image"
+            />
             <div class="like-dislike-text" v-if="showLike">LIKE</div>
             <div class="like-dislike-text" v-if="showDislike">DISLIKE</div>
             <div class="profile-info">
@@ -81,8 +88,9 @@
 
 <script>
 import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue";
-// import { getMatchesForUser } from "@/services/match-service";
+import { getMatchesForUser } from "@/services/match-service";
 import { loadAllProfiles } from "@/services/profile-service";
+import { swipeAction } from "@/services/swipe-service";
 
 export default {
   name: "App",
@@ -94,6 +102,7 @@ export default {
       showDislike: false, // Thêm biến để hiển thị "dislike"
       showLike: false, // Thêm biến để hiển thị "like"
       currentProfile: {}, // Khởi tạo đối tượng rỗng thay vì null
+      profileIndex: 0, // Chỉ số của hồ sơ hiện tại trong danh sách
 
       likedProfiles: [], // Danh sách các hồ sơ đã thích
       dislikedProfiles: [], // Danh sách các hồ sơ đã không thích
@@ -104,64 +113,144 @@ export default {
     LoveBellSidebar,
   },
   methods: {
-    // async loadMatches() {
-    //   try {
-    //     const userId = localStorage.getItem('userId');
-    //     if (!userId) {
-    //       alert("User ID not found. Please log in again.");
-    //       return;
-    //     }
-    //     const matchData = await getMatchesForUser(userId);
-    //     console.log("Match data:", matchData);
-    //     this.matches = matchData;
+    async loadMatches() {
+      try {
+        const matchData = await getMatchesForUser();
+        console.log("Match data:", matchData);
+        this.matches = matchData;
 
-    //     // Đặt profile hiện tại thành match đầu tiên
-    //     if (this.matches.length > 0) {
-    //       this.currentProfile = this.matches[0];
-    //     }
-    //   } catch (error) {
-    //     console.error("Error loading matches:", error.message);
-    //   }
-    // },
+        // Đặt profile hiện tại thành match đầu tiên
+        if (this.matches.length > 0) {
+          this.currentProfile = this.matches[0];
+        }
+      } catch (error) {
+        console.error("Error loading matches:", error.message);
+        alert("Unable to load matches. Please try again later.");
+      }
+    },
 
     async loadProfiles() {
-  try {
-    const profileData = await loadAllProfiles();
-    console.log("Profiles loaded:", profileData);
+      try {
+        const profileData = await loadAllProfiles();
+        console.log("Profiles loaded:", profileData);
 
-    // Đặt hồ sơ hiện tại là hồ sơ đầu tiên
-    if (profileData.length > 0) {
-      this.currentProfile = profileData[0];
-    }
+        // Giả sử bạn lưu userId của người dùng hiện tại trong localStorage
+        const currentUserId = parseInt(localStorage.getItem("userId"), 10);
 
-    // Kiểm tra xem profile hiện tại có avatar hay imageUrl không
-    if (!this.currentProfile.avatar && !this.currentProfile.imageUrl) {
-      console.warn("No image URL found for the current profile.");
-    }
-  } catch (error) {
-    console.error('Failed to load profiles:', error);
-  }
-},
+        // Lọc danh sách hồ sơ để loại bỏ người dùng hiện tại và những người đã swipe
+        const filteredProfiles = profileData.filter(
+          (profile) =>
+            profile.userId !== currentUserId &&
+            !this.likedProfiles.some(
+              (liked) => liked.userId === profile.userId
+            ) &&
+            !this.dislikedProfiles.some(
+              (disliked) => disliked.userId === profile.userId
+            )
+        );
+
+        // Lưu danh sách hồ sơ và đặt hồ sơ đầu tiên
+        if (filteredProfiles.length > 0) {
+          this.profiles = filteredProfiles;
+          this.profileIndex = 0;
+          this.currentProfile = this.profiles[this.profileIndex];
+          console.log("Current Profile set:", this.currentProfile);
+        } else {
+          console.warn("No profiles available.");
+          alert("No profiles found. Please try again later.");
+        }
+      } catch (error) {
+        console.error("Failed to load profiles:", error);
+      }
+    },
+
+    nextProfile() {
+      this.currentProfileVisible = false;
+      setTimeout(() => {
+        // Tăng chỉ số `profileIndex` để chuyển sang hồ sơ tiếp theo
+        this.profileIndex++;
+
+        // Tìm hồ sơ hợp lệ chưa được matched
+        while (
+          this.profileIndex < this.profiles.length &&
+          this.matches.some(
+            (match) =>
+              match.targetUserId === this.profiles[this.profileIndex].userId
+          )
+        ) {
+          this.profileIndex++;
+        }
+
+        // Kiểm tra xem chỉ số `profileIndex` có hợp lệ hay không
+        if (this.profileIndex < this.profiles.length) {
+          // Nếu hợp lệ, cập nhật hồ sơ hiện tại
+          this.currentProfile = { ...this.profiles[this.profileIndex] };
+          console.log("Profile Index updated:", this.profileIndex);
+          console.log("Current Profile updated:", this.currentProfile);
+        } else {
+          // Nếu không còn hồ sơ nào để duyệt, kết thúc danh sách hồ sơ
+          console.log("End of profile list");
+          this.currentProfile = null;
+          alert("You have viewed all profiles. Please try again later.");
+        }
+
+        // Hiển thị lại hồ sơ sau khi chuyển đổi
+        this.currentProfileVisible = true;
+      }, 500);
+    },
 
     like() {
-      this.likedProfiles.push(this.currentProfile); // Lưu hồ sơ đã thích
-      this.swipeRight = true;
-      this.swipeLeft = false;
-      this.showLike = true; // Hiển thị từ "like"
-      setTimeout(() => {
-        this.changeProfile();
-        this.showLike = false; // Tắt hiển thị sau khi chuyển profile
-      }, 500); // Time for animation to complete
+      // Kiểm tra xem currentProfile và userId có hợp lệ không
+      if (!this.currentProfile || !this.currentProfile.userId) {
+        console.error("targetUserId is missing:", this.currentProfile);
+        alert("Unable to perform swipe action due to missing profile data.");
+        return;
+      }
+
+      // Gọi hàm swipeAction với userId
+      swipeAction(this.currentProfile.userId, true) // Thay đổi từ targetUserId thành userId
+        .then((response) => {
+          console.log("Swipe action completed:", response);
+          this.likedProfiles.push(this.currentProfile);
+          this.swipeRight = true;
+          this.swipeLeft = false;
+          this.showLike = true;
+          setTimeout(() => {
+            this.nextProfile(); // Chuyển sang hồ sơ tiếp theo thay vì changeProfile
+            this.showLike = false;
+          }, 500);
+        })
+        .catch((error) => {
+          console.error("Error during swipe action:", error.message);
+          alert("Có lỗi xảy ra khi thực hiện hành động like.");
+        });
     },
+
     dislike() {
-      this.dislikedProfiles.push(this.currentProfile); // Lưu hồ sơ đã không thích
-      this.swipeLeft = true;
-      this.swipeRight = false;
-      this.showDislike = true; // Hiển thị từ "dislike"
-      setTimeout(() => {
-        this.changeProfile();
-        this.showDislike = false; // Tắt hiển thị sau khi chuyển profile
-      }, 500); // Time for animation to complete
+      // Kiểm tra xem currentProfile và userId có hợp lệ không
+      if (!this.currentProfile || !this.currentProfile.userId) {
+        console.error("targetUserId is missing:", this.currentProfile);
+        alert("Unable to perform swipe action due to missing profile data.");
+        return;
+      }
+
+      // Gọi hàm swipeAction với userId
+      swipeAction(this.currentProfile.userId, false) // Thay đổi từ targetUserId thành userId
+        .then((response) => {
+          console.log("Swipe action completed:", response);
+          this.dislikedProfiles.push(this.currentProfile);
+          this.swipeLeft = true;
+          this.swipeRight = false;
+          this.showDislike = true;
+          setTimeout(() => {
+            this.nextProfile(); // Chuyển sang hồ sơ tiếp theo thay vì changeProfile
+            this.showDislike = false;
+          }, 500);
+        })
+        .catch((error) => {
+          console.error("Error during swipe action:", error.message);
+          alert("Có lỗi xảy ra khi thực hiện hành động dislike.");
+        });
     },
     superLike() {
       alert("You super liked the profile");
@@ -179,11 +268,21 @@ export default {
       this.swipeLeft = false;
       this.swipeRight = false;
     },
-    
+    getAuthorizedImageUrl(url) {
+      const token = localStorage.getItem("userToken");
+      if (token) {
+        const authorizedUrl = `${url}?Authorization=Bearer ${token}`;
+        console.log("Authorized URL:", authorizedUrl); // Log URL để kiểm tra
+        return authorizedUrl;
+      } else {
+        console.error("User token not found.");
+        return url;
+      }
+    },
   },
   async mounted() {
-    await this.loadProfiles();  // Gọi API khi component được mounted
-
+    await this.loadProfiles(); // Gọi API khi component được mounted
+    await this.loadMatches(); // Tải danh sách matches khi component được mounted
   },
 };
 </script>
