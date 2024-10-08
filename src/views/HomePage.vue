@@ -13,24 +13,23 @@
       <LoveBellSidebar />
 
       <!-- Sidebar for matches -->
-      <aside class="sidebar">
+      <aside class="sidebarMatch">
         <div class="sidebar-header">
           <h3>Compatible Objects</h3>
         </div>
         <div class="matches-grid">
-          <div class="matches-grid">
-            <div
-              class="match-item"
-              v-for="match in matches"
-              :key="match.targetUserId"
-            >
-              <img
-                :src="getAuthorizedImageUrl(match.targetUserAvatar)"
-                class="match-image"
-              />
-              <div class="match-info">
-                <span class="match-name">{{ match.targetUserName }}</span>
-              </div>
+          <div
+            class="match-item"
+            v-for="match in matches"
+            :key="match.targetUserId"
+          >
+            <img
+              :src="getAuthorizedImageUrl(match.targetUserAvatar)"
+              class="match-image"
+              alt="Match Avatar"
+            />
+            <div class="match-info">
+              <span class="match-name">{{ match.targetUserName }}</span>
             </div>
           </div>
         </div>
@@ -53,11 +52,12 @@
             <img
               v-if="currentProfile.avatar || currentProfile.imageUrl"
               :src="
-                getAuthorizedImageUrl(currentProfile.avatar)
-                  ? getAuthorizedImageUrl(currentProfile.avatar)
-                  : getAuthorizedImageUrl(currentProfile.imageUrl)
+                getAuthorizedImageUrl(
+                  currentProfile.avatar || currentProfile.imageUrl
+                )
               "
-              alt="profile image"
+              alt="Profile Image"
+              class="profile-image"
             />
             <div class="like-dislike-text" v-if="showLike">LIKE</div>
             <div class="like-dislike-text" v-if="showDislike">DISLIKE</div>
@@ -106,7 +106,8 @@ export default {
 
       likedProfiles: [], // Danh sách các hồ sơ đã thích
       dislikedProfiles: [], // Danh sách các hồ sơ đã không thích
-      matches: [], // Dữ liệu các hồ sơ khác
+      matches: [], // Dữ liệu các hồ sơ
+      profileImageUrl: null, // Thêm biến này để lưu URL của ảnh profile
     };
   },
   components: {
@@ -271,7 +272,9 @@ export default {
     getAuthorizedImageUrl(url) {
       const token = localStorage.getItem("userToken");
       if (token) {
-        const authorizedUrl = `${url}?Authorization=Bearer ${token}`;
+        // Kiểm tra xem URL đã có dấu '?' chưa, nếu có thì thêm '&' để nối tiếp.
+        const separator = url.includes("?") ? "&" : "?";
+        const authorizedUrl = `${url}${separator}Authorization=Bearer ${token}`;
         console.log("Authorized URL:", authorizedUrl); // Log URL để kiểm tra
         return authorizedUrl;
       } else {
@@ -295,8 +298,8 @@ export default {
 }
 
 /* Sidebar */
-.sidebar {
-  width: 25%;
+.sidebarMatch {
+  width: 30%;
   background-color: #f6f6f6;
   border-right: 1px solid #e0e0e0;
   padding: 20px;
@@ -338,6 +341,7 @@ export default {
 .match-name {
   font-size: 16px;
   font-weight: bold;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Profile Section */

@@ -1,11 +1,11 @@
-import { instance } from "./api-instance-provider"; // Đảm bảo import Axios instance chính xác
+import { instance } from "./api-instance-provider"; 
 
 export async function fetchImage(url) {
   const token = localStorage.getItem("userToken");
 
   if (token) {
     try {
-      console.log("Token:", token); // Log để kiểm tra token
+      console.log("Token:", token); 
 
       const response = await instance.get(url, {
         headers: {
@@ -14,8 +14,8 @@ export async function fetchImage(url) {
         responseType: 'blob'
       });
 
-      console.log("Blob data:", response.data); // Kiểm tra blob data
-      return URL.createObjectURL(response.data);
+      console.log("Blob data:", response.data); 
+      return URL.createObjectURL(response.data); // Tạo một URL từ blob
     } catch (error) {
       console.error("Error fetching image:", error);
       return null;

@@ -48,25 +48,23 @@
           </button>
         </div>
       </div>
-      <div v-if="selectedContact" class="chat-content">
-        <div v-if="selectedContact" class="chat-content">
-          <div
-            class="message"
-            v-for="(message, index) in selectedContact.messages"
-            :key="index"
-            :class="{
-              'my-message': message.sender === 'me',
-              'other-message': message.sender !== 'me',
-            }"
-          >
-            <img
-              v-if="message.sender !== 'me'"
-              :src="selectedContact.profileImage"
-              class="chat-avatar"
-              alt="Profile"
-            />
-            <p>{{ message.text }}</p>
-          </div>
+      <div v-if="selectedContact" class="chat-content" ref="chatContent">
+        <div
+          class="message"
+          v-for="(message, index) in selectedContact.messages"
+          :key="index"
+          :class="{
+            'my-message': message.sender === 'me',
+            'other-message': message.sender !== 'me',
+          }"
+        >
+          <img
+            v-if="message.sender !== 'me'"
+            :src="selectedContact.profileImage"
+            class="chat-avatar"
+            alt="Profile"
+          />
+          <p>{{ message.text }}</p>
         </div>
       </div>
 
@@ -79,6 +77,8 @@
 </template>
 
 <script>
+import { Stomp } from "@stomp/stompjs";
+
 import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue";
 import {
   getMatchesForUser,
@@ -93,48 +93,49 @@ export default {
   data() {
     return {
       profileName: "Message",
-      contacts: [], // Danh sách contacts sẽ được lấy từ API
+      contacts: [],
       selectedContact: null,
       newMessage: "",
-      userId: null, // Lấy ID của người dùng từ JWT
-      token: localStorage.getItem("userToken"), // Giả sử bạn lưu JWT trong localStorage
+      userId: null,
+      token: localStorage.getItem("userToken"),
       currentUserId: null,
+      stompClient: null, // Đối tượng WebSocket client
     };
   },
   methods: {
     async getMatchesForUser() {
       try {
-        // Gọi API để lấy danh sách contacts
         const contactsData = await getMatchesForUser();
-        this.contacts = contactsData; // Cập nhật danh sách contacts
+        this.contacts = contactsData;
       } catch (error) {
         console.error("Error loading contacts:", error.message);
       }
     },
     async selectContact(contact) {
-  try {
-    this.selectedContact = contact;
+      this.selectedContact = contact;
+      const token = this.token;
+      if (!token || typeof token !== "string" || token === "1") {
+        console.error("Token không hợp lệ:", token);
+        alert("Vui lòng đăng nhập lại.");
+        return;
+      }
 
-    const token = this.token;
-    if (!token || typeof token !== "string" || token === "1") {
-      console.error("Token không hợp lệ:", token);
-      alert("Vui lòng đăng nhập lại.");
-      return;
-    }
+      try {
+        const messages = await getMessagesForMatch(contact.matchId, token);
+        this.selectedContact.messages = messages.map((message) => ({
+          text: message.content,
+          time: message.createdAt,
+          sender: message.senderId === this.currentUserId ? "me" : "them",
+        }));
 
-    const messages = await getMessagesForMatch(contact.matchId, token);
-    this.selectedContact.messages = messages.map((message) => ({
-      text: message.content,
-      time: message.createdAt,
-      sender: message.senderId === this.currentUserId ? "me" : "them",
-    }));
-  } catch (error) {
-    console.error("Error loading messages:", error);
-    alert("Không thể tải tin nhắn.");
-  }
-},
-
-
+        // Kết nối WebSocket và đăng ký topic mới
+        this.connectWebSocket();
+        this.subscribeToMessages(contact.matchId);
+      } catch (error) {
+        console.error("Error loading messages:", error);
+        alert("Không thể tải tin nhắn.");
+      }
+    },
     async sendMessage() {
       if (
         !this.newMessage ||
@@ -146,7 +147,6 @@ export default {
       }
 
       try {
-        // Lấy token từ localStorage
         const token = localStorage.getItem("userToken");
         if (!token || typeof token !== "string" || token === "1") {
           console.error("Token không hợp lệ:", token);
@@ -154,26 +154,33 @@ export default {
           return;
         }
 
-        console.log(
-          "Sending message with matchId:",
-          this.selectedContact.matchId
-        );
-        console.log("Token being used:", token);
-        console.log("Content:", this.newMessage);
+        if (this.stompClient && this.stompClient.connected) {
+          // Gửi tin nhắn qua WebSocket
+          const messageRequest = {
+            matchId: this.selectedContact.matchId,
+            content: this.newMessage,
+            senderId: this.currentUserId,
+          };
+          this.stompClient.send(
+            "/app/sendMessage",
+            {},
+            JSON.stringify(messageRequest)
+          );
+        } else {
+          // Nếu WebSocket không hoạt động, gửi qua REST API như dự phòng
+          const sentMessage = await sendMessageToMatch(
+            this.selectedContact.matchId,
+            this.newMessage,
+            token
+          );
 
-        // Gửi tin nhắn tới server
-        const sentMessage = await sendMessageToMatch(
-          this.selectedContact.matchId,
-          this.newMessage,
-          token
-        );
-
-        // Thêm tin nhắn vào giao diện chat
-        this.selectedContact.messages.push({
-          text: sentMessage.content,
-          time: sentMessage.createdAt,
-          sender: "me",
-        });
+          // Thêm tin nhắn vào giao diện chat
+          this.selectedContact.messages.push({
+            text: sentMessage.content,
+            time: sentMessage.createdAt,
+            sender: "me",
+          });
+        }
 
         // Reset input sau khi gửi tin nhắn
         this.newMessage = "";
@@ -183,6 +190,74 @@ export default {
           `Không thể gửi tin nhắn: ${
             error.response?.data?.message || error.message
           }`
+        );
+      }
+    },
+
+    connectWebSocket() {
+      if (!this.stompClient) {
+        const headers = {
+          Authorization: `Bearer ${this.token}`,
+          Origin: "http://localhost:8081",
+        };
+        this.stompClient = Stomp.over(new WebSocket("ws://localhost:8081/ws"));
+
+        this.stompClient.connect(
+          headers,
+          () => {
+            console.log("WebSocket connected successfully.");
+            if (this.selectedContact) {
+              this.subscribeToMessages(this.selectedContact.matchId);
+            }
+          },
+          (error) => {
+            console.error("WebSocket connection error:", error);
+          }
+        );
+      } else if (this.stompClient.connected && this.selectedContact) {
+        // Đăng ký lại khi có selectedContact mới
+        this.subscribeToMessages(this.selectedContact.matchId);
+      }
+    },
+
+    subscribeToMessages(matchId) {
+      if (this.stompClient && this.stompClient.connected) {
+        if (this.subscription) {
+          this.subscription.unsubscribe(); // Hủy đăng ký khỏi topic cũ trước khi đăng ký mới
+        }
+
+        this.subscription = this.stompClient.subscribe(
+          `/topic/messages/${matchId}`,
+          (message) => {
+            console.log("WebSocket message received:", message.body); // LOG để kiểm tra tin nhắn
+
+            if (message.body) {
+              const receivedMessage = JSON.parse(message.body);
+              if (receivedMessage.matchId === matchId) {
+                // Cập nhật selectedContact.messages
+                const updatedMessages = [
+                  ...this.selectedContact.messages,
+                  {
+                    text: receivedMessage.content,
+                    time: receivedMessage.createdAt,
+                    sender:
+                      receivedMessage.senderId === this.currentUserId
+                        ? "me"
+                        : "them",
+                  },
+                ];
+                this.$set(this.selectedContact, "messages", updatedMessages);
+
+                // Cuộn xuống cuối khi có tin nhắn mới
+                this.$nextTick(() => {
+                  const chatContent = this.$refs.chatContent;
+                  if (chatContent) {
+                    chatContent.scrollTop = chatContent.scrollHeight;
+                  }
+                });
+              }
+            }
+          }
         );
       }
     },
@@ -197,18 +272,18 @@ export default {
       alert("Hiển thị thông tin người dùng...");
     },
   },
+
   async mounted() {
-    // Giả sử userToken là JWT và bạn có thể giải mã nó để lấy thông tin userId
-  const token = this.token;
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      this.currentUserId = payload.userId; // Lấy userId từ payload của JWT
-    } catch (error) {
-      console.error("Error decoding token:", error);
+    const token = this.token;
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        this.currentUserId = payload.userId;
+      } catch (error) {
+        console.error("Error decoding token:", error);
+      }
     }
-  }
-    await this.getMatchesForUser(); // Gọi hàm loadContacts khi component được mount để lấy dữ liệu contacts
+    await this.getMatchesForUser();
   },
 };
 </script>
