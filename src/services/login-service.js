@@ -1,4 +1,4 @@
-import {jwtDecode} from "jwt-decode"; // Import thư viện jwt-decode để giải mã JWT token
+import { jwtDecode } from "jwt-decode"; // Import thư viện jwt-decode để giải mã JWT token
 import { instance, Login } from "./api-instance-provider"; // Import `instance` để gọi API và `Login` cho URL
 
 // Phương thức xử lý đăng nhập
@@ -15,6 +15,7 @@ export const loginUser = async (email, password) => {
       const resultMessage = response.data.message;
       const token = response.data.data; // Token sẽ chứa trong `data`
 
+      console.log("🚀 ~ loginUser ~ response.data.data:", response.data.data);
       // Xử lý các trường hợp từ server
       if (resultMessage.startsWith("First login")) {
         alert("First login detected, please change your password.");

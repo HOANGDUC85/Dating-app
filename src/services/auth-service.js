@@ -6,12 +6,8 @@ export const getLoggedInUser = async () => {
   if (token) {
     try {
       const decodedToken = jwtDecode(token);
-      console.log(
-        "🚀 ~ getLoggedInUser ~ decodedToken.userId:",
-        decodedToken.userId
-      );
-      return decodedToken;
 
+      return decodedToken;
     } catch (error) {
       console.error("Invalid token:", error);
       return null;
