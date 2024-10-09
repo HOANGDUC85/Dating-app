@@ -6,7 +6,11 @@
         <!-- Avatar -->
         <div class="form-group">
           <label for="avatar">Ảnh đại diện:</label>
-          <input type="text" id="avatar" v-model="profileData.avatar" placeholder="URL ảnh đại diện" />
+          <div class="avatar-wrapper">
+            <!-- Hiển thị ảnh đại diện nếu đã chọn -->
+            <img v-if="profileData.avatar" :src="profileData.avatar" alt="Ảnh đại diện" class="avatar-preview" />
+            <input type="file" id="avatar" @change="onFileChangeAvatar" accept="image/*" />
+          </div>
         </div>
   
         <!-- Name -->
@@ -41,7 +45,11 @@
         <div class="form-group">
           <label for="photos">Ảnh khác:</label>
           <div v-for="(photo, index) in profileData.photos" :key="index" class="photo-input">
-            <input type="text" v-model="photo.url" placeholder="URL ảnh" />
+            <div class="photo-wrapper">
+              <!-- Hiển thị ảnh nếu đã chọn -->
+              <img v-if="photo.url" :src="photo.url" alt="Ảnh khác" class="photo-preview" />
+              <input type="file" @change="onFileChangePhoto($event, index)" accept="image/*" />
+            </div>
             <button type="button" @click="removePhoto(index)">Xóa</button>
           </div>
           <button type="button" @click="addPhoto">Thêm ảnh</button>
@@ -62,7 +70,7 @@
     data() {
       return {
         profileData: {
-          avatar: "", // Avatar URL
+          avatar: "", // Avatar URL hoặc base64
           name: "", // Name
           age: "", // Age
           gender: "", // Gender
@@ -89,6 +97,28 @@
       }
     },
     methods: {
+      // Khi người dùng tải ảnh đại diện từ máy tính
+      onFileChangeAvatar(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.profileData.avatar = e.target.result; // Lưu base64 ảnh vào profileData.avatar
+          };
+          reader.readAsDataURL(file); // Chuyển đổi file sang base64
+        }
+      },
+      // Khi người dùng tải ảnh khác từ máy tính
+      onFileChangePhoto(event, index) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.profileData.photos[index].url = e.target.result; // Lưu base64 ảnh vào profileData.photos
+          };
+          reader.readAsDataURL(file); // Chuyển đổi file sang base64
+        }
+      },
       // Thêm một ô input ảnh mới
       addPhoto() {
         this.profileData.photos.push({ url: "" });
@@ -149,15 +179,18 @@
     border: 1px solid #ccc;
   }
   
+  /* Bố trí ảnh đại diện và input file theo hàng ngang */
+  .avatar-wrapper, .photo-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Khoảng cách giữa ảnh và nút chọn file */
+  }
+  
   .photo-input {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 10px;
-  }
-  
-  .photo-input input {
-    flex: 1;
-    margin-right: 10px;
   }
   
   .photo-input button {
@@ -167,6 +200,15 @@
     border-radius: 8px;
     padding: 5px 10px;
     cursor: pointer;
+  }
+  
+  /* Thêm style cho ảnh đại diện và ảnh khác xem trước */
+  .avatar-preview,
+  .photo-preview {
+    width: 150px;
+    height: 150px;
+    border-radius: 8px;
+    object-fit: cover;
   }
   
   button[type="submit"] {

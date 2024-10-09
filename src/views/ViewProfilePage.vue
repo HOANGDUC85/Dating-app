@@ -119,15 +119,14 @@ export default {
 }
 
 .profile-image {
-  width: 120px;
-  height: 120px;
+  width: 170px;
+  height: 170px;
   border-radius: 50%;
   margin-right: 20px;
 }
 
 .profile-info {
-  display: flex;
-  flex-direction: column;
+ font-size: xx-large;
 }
 
 /* Photo Grid */
@@ -142,7 +141,7 @@ export default {
 }
 
 .photo-thumbnail {
-  width: 75%;
+  width: 67%;
   height: auto;
   border-radius: 8px;
   object-fit: cover;
