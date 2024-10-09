@@ -1,12 +1,12 @@
 import { instance } from './api-instance-provider'; // Sử dụng axios instance đã thiết lập
 
-export const updateProfile = async (name, age, bio, gender, files) => {
+export const updateProfile = async (name, phone, age, bio, gender, files) => {
   try {
     // Tạo FormData để gửi dữ liệu multipart/form-data
     const formData = new FormData();
     
     // Append chuỗi JSON cho `updateProfileRequest`
-    const updateProfileRequest = JSON.stringify({ name, age, bio, gender });
+    const updateProfileRequest = JSON.stringify({ name, phone, age, bio, gender });
     formData.append('updateProfileRequest', updateProfileRequest);
 
     // Thêm từng file vào FormData

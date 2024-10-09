@@ -345,6 +345,7 @@ export default {
 
 .contact-name {
   font-weight: bold;
+  margin-left: 10px;
 }
 
 .contact-message {

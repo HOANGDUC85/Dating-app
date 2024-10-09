@@ -62,10 +62,15 @@
             <div class="like-dislike-text" v-if="showLike">LIKE</div>
             <div class="like-dislike-text" v-if="showDislike">DISLIKE</div>
             <div class="profile-info">
-              <h2>{{ currentProfile.name }} - {{ currentProfile.age }}</h2>
+              <div class="profile-header-name">
+                <h2>{{ currentProfile.name }} - {{ currentProfile.age }}</h2>
+                <button class="info-button" @click="showProfileInfo">
+                  <i class="fas fa-info-circle"></i>
+                </button>
+              </div>
               <p>
                 <i class="fas fa-map-marker-alt"></i>
-                Cách xa {{ currentProfile.distance }}
+                Cách xa {{ getRandomDistance() }} km
               </p>
             </div>
             <div class="action-buttons">
@@ -81,6 +86,52 @@
             </div>
           </div>
         </transition>
+      </div>
+
+      <!-- Modal Popup -->
+      <div v-if="showInfo" class="modal-overlay" @click="closeModal">
+        <div class="modal-content full-image-modal" @click.stop>
+          <button class="close-button" @click="closeModal">
+            <i class="fas fa-times"></i>
+          </button>
+          <h2>{{ currentProfile.name }} - {{ currentProfile.age }}</h2>
+          <p>{{ currentProfile.bio }}</p>
+          <div
+            class="images-wrapper"
+            v-if="currentProfile"
+            :key="profileIndex"
+            :class="{
+              'swipe-left': swipeLeft,
+              'swipe-right': swipeRight,
+              'show-like': showLike,
+              'show-dislike': showDislike,
+            }"
+          >
+            <img
+              v-if="currentProfile.imageUrl"
+              :src="
+                getAuthorizedImageUrl(
+                  currentProfile.imageUrl
+                )
+              "
+              alt="Profile Image"
+              class="profile-image"
+            />
+            <div class="like-dislike-text" v-if="showLike">LIKE</div>
+            <div class="like-dislike-text" v-if="showDislike">DISLIKE</div>
+          </div>
+          <div class="action-buttons-modal">
+            <button class="button dislike-button" @click="dislike">
+              <i class="fas fa-times"></i>
+            </button>
+            <button class="button super-like-button" @click="superLike">
+              <i class="fas fa-star"></i>
+            </button>
+            <button class="button like-button" @click="like">
+              <i class="fas fa-heart"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -108,6 +159,7 @@ export default {
       dislikedProfiles: [], // Danh sách các hồ sơ đã không thích
       matches: [], // Dữ liệu các hồ sơ
       profileImageUrl: null, // Thêm biến này để lưu URL của ảnh profile
+      showInfo: false, // Biến để kiểm soát hiển thị modal
     };
   },
   components: {
@@ -269,18 +321,32 @@ export default {
       this.swipeLeft = false;
       this.swipeRight = false;
     },
+    showProfileInfo() {
+      console.log(
+        "Current Profile images (when showing modal):",
+        this.currentProfile.images
+      );
+      this.showInfo = true;
+    },
+
+    // Phương thức đóng modal
+    closeModal() {
+      this.showInfo = false;
+    },
     getAuthorizedImageUrl(url) {
       const token = localStorage.getItem("userToken");
       if (token) {
-        // Kiểm tra xem URL đã có dấu '?' chưa, nếu có thì thêm '&' để nối tiếp.
         const separator = url.includes("?") ? "&" : "?";
         const authorizedUrl = `${url}${separator}Authorization=Bearer ${token}`;
-        console.log("Authorized URL:", authorizedUrl); // Log URL để kiểm tra
+        console.log("Authorized URL:", authorizedUrl); // Log để kiểm tra URL
         return authorizedUrl;
       } else {
         console.error("User token not found.");
         return url;
       }
+    },
+    getRandomDistance() {
+      return Math.floor(Math.random() * 10) + 1;
     },
   },
   async mounted() {
@@ -309,8 +375,8 @@ export default {
 
 .sidebar-header {
   text-align: center;
-  margin: 20px;
-  font-size: 20px;
+  margin: 10px;
+  font-size: 24px;
   font-weight: bold;
 }
 
@@ -498,5 +564,166 @@ export default {
 
   opacity: 1;
   color: #ff5a5f; /* Màu đỏ cho "dislike" */
+}
+.profile-header-name {
+  display: flex;
+  justify-content: space-between;
+}
+
+.profile-name {
+  margin: 0;
+  flex: 1;
+}
+.info-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #3498db;
+  transition: transform 0.2s ease-in-out;
+}
+
+.info-button:hover {
+  transform: scale(1.1);
+}
+
+.info-button:active {
+  transform: scale(0.95);
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal Content */
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  max-width: 700px;
+  width: 100%;
+}
+
+/* Close Button */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+.close-button:hover {
+  transform: scale(1.1);
+}
+
+.close-button:active {
+  transform: scale(0.95);
+}
+
+/* Image Wrapper */
+.images-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.image-item {
+  flex: 1;
+  text-align: center;
+}
+
+.profile-image-modal {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.image-label {
+  margin-top: 5px;
+  font-size: 14px;
+  color: #555;
+}
+
+/* Action Buttons in Modal */
+.action-buttons-modal {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.button {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: white;
+  border: 1px solid #ddd; /* Thêm viền cho nút */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+.button::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, red, orange);
+  z-index: -1;
+}
+
+.super-like-button::before {
+  background: linear-gradient(45deg, blue, cyan);
+}
+
+.like-button::before {
+  background: linear-gradient(45deg, green, lime);
+}
+
+.button:hover {
+  transform: scale(1.1);
+}
+
+.button:active {
+  transform: scale(0.95);
+}
+
+.button i {
+  font-size: 1.5rem;
+}
+
+.dislike-button i {
+  color: #ff5a5f;
+}
+
+.super-like-button i {
+  color: #3498db;
+}
+
+.like-button i {
+  color: #2ecc71;
 }
 </style>

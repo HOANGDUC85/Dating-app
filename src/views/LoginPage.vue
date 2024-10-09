@@ -123,9 +123,6 @@ export default {
     console.error("Login failed:", error);
   }
 },
-
-
-
     loginWithGoogle() {
       alert("Logging in with Google");
     },

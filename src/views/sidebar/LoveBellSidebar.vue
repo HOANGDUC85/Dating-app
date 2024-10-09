@@ -33,7 +33,7 @@
       <li class="menu-item">
         <router-link to="/notification" class="menu-link">
           <i class="material-icons">notifications</i>
-          <span>Thông báo</span>
+          <span>Notification</span>
         </router-link>
       </li>
 
@@ -65,7 +65,7 @@
       <li class="menu-item profile">
         <router-link to="/profile" class="menu-link">
           <img :src="require('@/assets/logo.png')" alt="Profile Image" class="profile-img"/>
-          <span>Trang cá nhân</span>
+          <span>My Profile</span>
         </router-link>
       </li>
 
