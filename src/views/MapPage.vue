@@ -336,7 +336,7 @@ display: flex;
   align-items: center;
   z-index: 1000;
   margin-left: 1000px;
-  margin-top: 220px;
+  margin-top: 360px;
 }
 
 /* Modal Content */

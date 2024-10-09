@@ -10,6 +10,16 @@
           <label for="files">Upload Photos:</label>
           <input type="file" @change="handleFileUpload" multiple />
         </div>
+        <!-- Preview uploaded images -->
+        <div v-if="filePreviews.length > 0" class="image-preview-container">
+          <div
+            v-for="(preview, index) in filePreviews"
+            :key="index"
+            class="image-preview"
+          >
+            <img :src="preview" alt="Image preview" />
+          </div>
+        </div>
 
         <!-- Name input field -->
         <div class="input-field">
@@ -21,10 +31,21 @@
             class="string-input"
           />
         </div>
-
+        <!-- Phone input field -->
+        <div class="input-field">
+          <label for="phone">Phone:</label>
+          <input
+            type="number"
+            v-model="phone"
+            placeholder="Phone"
+            class="string-input"
+          />
+        </div>
         <!-- Age slider field -->
         <div class="age-slider-container">
-          <label for="ageRange">Age: <strong>{{ age }}</strong></label>
+          <label for="ageRange"
+            >Age: <strong>{{ age }}</strong></label
+          >
           <input
             type="range"
             v-model="age"
@@ -52,7 +73,7 @@
         </div>
 
         <!-- Gender selection -->
-        <div class="gender-selection">
+        <div class="gender-selection input-field">
           <label for="gender">Gender:</label>
           <div class="options">
             <button
@@ -95,10 +116,13 @@ export default {
   data() {
     return {
       name: "",
+      phone: "",
       age: 25, // Default value for the slider
       bio: "",
       gender: "",
       files: [], // Tệp ảnh
+      filePreviews: [], // Array to store preview URLs separately
+
       bioMaxLength: 150, // Max length for bio
       profileError: "", // Error message display
     };
@@ -123,6 +147,7 @@ export default {
         // Gọi updateProfile với FormData bao gồm thông tin và các file
         const response = await updateProfile(
           this.name,
+          this.phone,
           this.age,
           this.bio,
           this.gender,
@@ -139,8 +164,20 @@ export default {
       }
     },
     handleFileUpload(event) {
-      this.files = Array.from(event.target.files);
-      console.log("Files selected:", this.files);
+      this.files = Array.from(event.target.files); // Original file objects
+
+      // Clear previous previews
+      this.filePreviews = [];
+
+      this.files.forEach((file) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+
+        reader.onload = () => {
+          // Store the preview in the separate filePreviews array
+          this.filePreviews.push(reader.result);
+        };
+      });
     },
   },
   computed: {
@@ -155,6 +192,7 @@ export default {
 };
 </script>
 <style>
+/* General form styling */
 .login-page-container {
   display: flex;
   height: 100vh;
@@ -200,12 +238,14 @@ export default {
   font-size: 16px;
 }
 
+/* Profile error styling */
 .profile-error {
   color: red;
   text-align: center;
   margin-bottom: 20px;
 }
 
+/* Update profile button styling */
 .change-profile-button {
   width: 100%;
   padding: 15px;
@@ -215,15 +255,17 @@ export default {
   border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
+  margin-top: 20px;
 }
 
 .change-profile-button:hover {
   background-color: #ed94b8;
 }
 
+/* Age slider container styling */
 .age-slider-container {
   width: 100%;
-  margin: 10px 0;
+  margin: 20px 0;
 }
 
 .age-slider-container label {
@@ -261,6 +303,7 @@ export default {
   cursor: pointer;
 }
 
+/* Gender selection styling */
 .gender-selection {
   margin: 20px 0;
   font-size: 16px;
@@ -269,7 +312,7 @@ export default {
 
 .gender-selection .options {
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   gap: 15px;
 }
 
@@ -307,6 +350,7 @@ button:hover {
   opacity: 0.8;
 }
 
+/* Bio textarea styling */
 .bio-textarea {
   resize: vertical;
   font-size: 16px;
@@ -320,5 +364,63 @@ button:hover {
   color: #666;
   text-align: right;
   margin-top: -10px;
+}
+
+/* Image preview styling */
+.image-preview-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 images per row */
+  gap: 15px; /* Gap between the images */
+  margin-top: 15px;
+}
+
+.image-preview img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+/* Upload Photos input styling */
+.input-field {
+  margin-bottom: 20px;
+}
+
+input[type="file"] {
+  display: block;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+  padding: 10px;
+  font-size: 14px;
+  background-color: #ff4d95;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+  background-color: #ed94b8;
+}
+
+/* Align input fields evenly */
+.input-field label {
+  font-weight: bold;
+  display: inline-block;
+  margin: 10px 0px 5px 0px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+}
+
+.input-field input,
+.input-field textarea {
+  display: block;
+  width: calc(100% - 20px);
+  margin-left: 5px;
 }
 </style>
