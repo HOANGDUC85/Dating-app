@@ -94,8 +94,8 @@ export default {
 
 .edit-profile {
   position: absolute;
-  right: 120px;
-  top: 70px;
+  right: 300px;
+  top: 100px;
 }
 
 .sidebar-content {
@@ -126,7 +126,7 @@ export default {
 }
 
 .profile-info {
- font-size: xx-large;
+ font-size: x-large;
 }
 
 /* Photo Grid */
