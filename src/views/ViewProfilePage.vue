@@ -1,318 +1,237 @@
 <template>
-  <div class="edit-profile-page">
-    <h2>Chỉnh sửa trang cá nhân</h2>
+  <div>
+    <div class="sidebarr">
+      <!-- Left Sidebar (LoveBellSidebar) -->
+      <div class="sidebar-content">
+        <LoveBellSidebar />
 
-    <form @submit.prevent="saveProfile">
-      <!-- Name -->
-      <div class="form-group">
-        <label for="name">Tên:</label>
-        <input
-          type="text"
-          id="name"
-          v-model="profileData.name"
-          placeholder="Nhập tên của bạn"
-          required
-        />
-      </div>
+        <!-- Right Content (Profile Header and Photo Grid) -->
+        <div class="content">
+          <!-- Profile Header -->
+          <div class="profile-header">
+            <img
+              :src="profileData.avatar"
+              alt="Profile Image"
+              class="profile-image"
+            />
+            <div class="profile-info">
+              <h2>{{ profileData.name }} - {{ profileData.age }}</h2>
+              <h5>{{ profileData.gender }}</h5>
+              <p>{{ profileData.bio }}</p>
+            </div>
+            <div class="edit-profile">
+              <button @click="showEditProfile = true">
+                Chỉnh sửa trang cá nhân
+              </button>
+            </div>
+          </div>
 
-      <!-- Age -->
-      <div class="form-group">
-        <label for="age">Tuổi:</label>
-        <input
-          type="number"
-          id="age"
-          v-model="profileData.age"
-          placeholder="Nhập tuổi"
-          min="1"
-          max="120"
-          required
-        />
-      </div>
-
-      <!-- Gender -->
-      <div class="form-group">
-        <label for="gender">Giới tính:</label>
-        <select id="gender" v-model="profileData.gender" required>
-          <option value="MALE">Nam</option>
-          <option value="FEMALE">Nữ</option>
-          <option value="OTHER">Khác</option>
-        </select>
-      </div>
-
-      <!-- Bio -->
-      <div class="form-group">
-        <label for="bio">Tiểu sử:</label>
-        <textarea
-          id="bio"
-          v-model="profileData.bio"
-          placeholder="Giới thiệu bản thân..."
-          :maxlength="bioMaxLength"
-          required
-        ></textarea>
-        <small class="char-counter">Còn lại: {{ remainingBioChars }}</small>
-      </div>
-
-      <!-- Phone -->
-      <div class="form-group">
-        <label for="phone">Số điện thoại:</label>
-        <input
-          type="tel"
-          id="phone"
-          v-model="profileData.phone"
-          placeholder="Nhập số điện thoại của bạn"
-          pattern="[0-9]*"
-          maxlength="15"
-          required
-        />
-      </div>
-
-      <!-- Photos -->
-      <div class="form-group">
-        <label for="photos">Ảnh khác:</label>
-        <div class="photos-scroll-container">
-          <div
-            v-for="(photo, index) in profileData.photos"
-            :key="index"
-            class="photo-input"
-          >
-            <div class="photo-wrapper">
+          <!-- Photo Grid -->
+          <div class="photo-grid">
+            <div
+              v-for="(photo, index) in profileData.photos"
+              :key="index"
+              class="photo-item"
+            >
               <img
-                v-if="photo.url"
                 :src="photo.url"
-                alt="Ảnh khác"
-                class="photo-preview"
-              />
-              <input
-                type="file"
-                @change="onFileChangePhoto($event, index)"
-                accept="image/*"
+                alt="Photo Thumbnail"
+                class="photo-thumbnail"
+                @click="openPhotoModal(photo.url)"
               />
             </div>
-            <button type="button" @click="removePhoto(index)">Xóa</button>
           </div>
         </div>
-        <button type="button" @click="addPhoto">Thêm ảnh</button>
       </div>
+    </div>
 
-      <!-- Submit Button -->
-      <div class="form-group">
-        <button type="submit">Lưu thay đổi</button>
+    <!-- Modal hiển thị trang chỉnh sửa -->
+    <div v-if="showEditProfile" class="modal-overlay">
+      <div class="modal-content">
+        <!-- Nút X để đóng modal -->
+        <button class="close-button" @click="showEditProfile = false">X</button>
+
+        <ChangeProfilePage @close="showEditProfile = false" />
       </div>
+    </div>
 
-      <!-- Error Message -->
-      <p v-if="profileError" class="profile-error">{{ profileError }}</p>
-    </form>
+    <!-- Modal hiển thị ảnh lớn -->
+    <div v-if="showPhotoModal" class="modal-overlay">
+      <div class="modal-content">
+        <button class="close-button" @click="showPhotoModal = false">X</button>
+        <img :src="selectedPhoto" alt="Large Photo" class="large-photo" />
+      </div>
+    </div>
   </div>
 </template>
-
 <script>
-import { getMyProfile, updateProfile } from "@/services/viewProfile-service.js"; // Import service
+import LoveBellSidebar from "@/views/sidebar/LoveBellSidebar.vue";
+import ChangeProfilePage from "@/views/ChangeProfilePage.vue"; // Import trang chỉnh sửa
+import { getMyProfile } from "@/services/viewProfile-service.js"; // Import hàm lấy profile
 
 export default {
   data() {
     return {
       profileData: {
-        name: "", 
-        phone: "", 
-        age: "", 
-        gender: "", 
-        bio: "",
-        photos: [], // Sửa từ 'files' thành 'photos'
+        avatar: "", // Avatar URL
+        name: "", // Name
+        age: "", // Age
+        gender: "", // Gender
+        bio: "", // Bio
+        photos: [], // Photos array
       },
-      bioMaxLength: 150, // Độ dài tối đa cho tiểu sử
-      profileError: "", // Lưu trữ lỗi
+      showEditProfile: false, // Trạng thái hiển thị modal chỉnh sửa
+      showPhotoModal: false, // Trạng thái hiển thị modal ảnh lớn
+      selectedPhoto: "", // Ảnh được chọn để hiển thị lớn
     };
   },
-  computed: {
-    remainingBioChars() {
-      return this.bioMaxLength - this.profileData.bio.length;
-    },
+  components: {
+    LoveBellSidebar,
+    ChangeProfilePage, // Đăng ký component trang chỉnh sửa
   },
   async mounted() {
     try {
+      // Gọi API lấy thông tin profile người dùng
       const profileResponse = await getMyProfile();
-      const profile = profileResponse.data; 
+      const profile = profileResponse.data; // Lấy data từ response
 
-      this.profileData = {
-        name: profile.name || "",
-        phone: profile.phone || "",
-        age: profile.age || "",
-        gender: profile.gender || "",
-        bio: profile.bio || "",
-        photos: profile.photos.map((photo) => ({
-          url: photo.url,
-          file: null, 
-        })) || [],
-      };
-      
+      // Gán dữ liệu từ API vào profileData
+      this.profileData.avatar = profile.avatar || "Unnamed User";
+      this.profileData.name = profile.name || "Unnamed User";
+      this.profileData.age = profile.age || "Unknown";
+      this.profileData.gender = profile.gender || "Unknown";
+      this.profileData.bio = profile.bio || "No bio available";
+      this.profileData.photos = profile.photos || [];
     } catch (error) {
       console.error("Error loading profile data:", error);
-      this.profileError = "Không thể tải thông tin hồ sơ.";
     }
   },
   methods: {
-    addPhoto() {
-      this.profileData.photos.push({ url: "", file: null });
-    },
-
-    onFileChangePhoto(event, index) {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.profileData.photos[index].url = e.target.result;
-          this.profileData.photos[index].file = file;
-        };
-        reader.readAsDataURL(file);
-      }
-    },
-
-    removePhoto(index) {
-      this.profileData.photos.splice(index, 1);
-    },
-
-    async saveProfile() {
-      try {
-        const formData = new FormData();
-        
-        // Chuyển đổi các thông tin profile thành đối tượng
-        const updateProfileRequest = {
-          name: this.profileData.name,
-          phone: this.profileData.phone,
-          age: this.profileData.age,
-          bio: this.profileData.bio,
-          gender: this.profileData.gender,
-        };
-        
-        formData.append("updateProfileRequest", JSON.stringify(updateProfileRequest));
-
-        // Gắn các file ảnh
-        for (const photo of this.profileData.photos) {
-          if (photo.file) {
-            formData.append("files", photo.file);
-          }
-        }
-      
-        // Gọi API cập nhật profile
-        const response = await updateProfile(
-          this.profileData.name,
-          this.profileData.phone,
-          this.profileData.age,
-          this.profileData.bio,
-          this.profileData.gender,
-          this.profileData.photos.map(photo => photo.file) // Truyền mảng các tệp ảnh
-        );
-
-        if (response.status === 200) {
-          alert("Cập nhật thành công!");
-          this.$router.push("/profile"); // Điều hướng về trang cá nhân
-        }
-      } catch (error) {
-        console.error("Error saving profile:", error);
-        this.profileError = "Đã xảy ra lỗi khi cập nhật thông tin.";
-      }
+    openPhotoModal(photoUrl) {
+      this.selectedPhoto = photoUrl;
+      this.showPhotoModal = true;
     },
   },
 };
 </script>
-
-<style scoped>
-/* Styles cho trang chỉnh sửa profile */
-.edit-profile-page {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+<style>
+/* Các style không thay đổi */
+.sidebarr {
+  flex-direction: column;
+  height: 100vh;
 }
 
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
+.edit-profile {
+  position: absolute;
+  right: 300px;
+  top: 100px;
 }
 
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
+.sidebar-content {
+  display: flex;
   width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  height: 100%;
 }
 
-.avatar-wrapper,
-.photo-wrapper {
+.content {
+  flex: 5;
+  padding-left: 200px;
+  padding-top: 50px;
+}
+
+/* Profile Header */
+.profile-header {
   display: flex;
   align-items: center;
-  gap: 20px;
+  margin-bottom: 30px;
+  padding-left: 70px;
 }
 
-.photo-input {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
+.profile-image {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  margin-right: 20px;
 }
 
-.photo-input button {
-  background-color: #ff4b4b;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 5px 10px;
-  cursor: pointer;
+.profile-info {
+  font-size: x-large;
 }
 
-.photo-preview {
-  width: 150px;
-  height: 150px;
+/* Photo Grid */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.photo-item {
+  text-align: center;
+}
+
+.photo-thumbnail {
+  width: 90%;
+  height: auto;
   border-radius: 8px;
   object-fit: cover;
-}
-
-button[type="submit"] {
-  width: 100%;
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
   cursor: pointer;
 }
 
-.photos-scroll-container {
-  max-height: 300px;
-  overflow-y: auto;
-  padding: 10px;
-  background-color: #f9f9f9;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+.photo-title {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: bold;
 }
 
-button[type="submit"]:hover {
-  background-color: #0056b3;
+/* Style cho modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-.char-counter {
-  font-size: 12px;
-  color: #666;
-  text-align: right;
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
-.profile-error {
+.modal-content {
+  max-height: 90vh; /* Giới hạn chiều cao modal */
+  overflow-y: auto; /* Thêm thanh cuộn dọc nếu nội dung vượt quá chiều cao */
+}
+
+/* Style cho nút X (close) */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-button:hover {
   color: red;
-  text-align: center;
+}
+
+/* Ảnh lớn trong modal */
+.large-photo {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
 }
 </style>
