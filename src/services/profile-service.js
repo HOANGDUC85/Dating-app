@@ -1,20 +1,5 @@
 import { instance } from "./api-instance-provider";
 
-// export const getRandomUserProfile = async () => {
-//   try {
-//     const response = await instance.get('/profiles/random', {
-//       headers: {
-//         Authorization: `Bearer ${localStorage.getItem('userToken')}`,
-//       },
-//     });
-//     console.log('Response received:', response);
-
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error fetching random profile:', error);
-//     throw error;
-//   }
-// };
 
 // Hàm để tải một hồ sơ ngẫu nhiên
 export async function loadRandomProfile() {
@@ -25,28 +10,23 @@ export async function loadRandomProfile() {
       },
     });
 
-    if (response.status === 204) {
-      console.warn('No random profile available.');
-      return null;
-    }
+    // Adjust the returned profile format to match the expected output (even though it's a single object)
+    if (response.data && response.data.data) {
+      const profile = {
+        profileId: response.data.data.profileId,
+        userId: response.data.data.userId,
+        name: response.data.data.name,
+        age: response.data.data.age,
+        bio: response.data.data.bio,
+        imageUrl: response.data.data.avatar || response.data.data.imageUrl, // Adjust based on actual API response
+      };
 
-    const profile = response.data;
-    return {
-      profileId: profile.profileId,
-      userId: profile.userId,
-      imageUrl: profile.avatar || profile.imageUrl,
-      name: profile.name,
-      age: profile.age,
-      bio: profile.bio,
-    };
-  } catch (error) {
-    if (error.response && error.response.status === 401) {
-      console.error('Unauthorized access. Token might be missing or invalid.');
-      alert('Không có quyền truy cập. Vui lòng đăng nhập lại.');
+      return [profile]; // Return the profile in an array format to keep the rest of the code compatible
     } else {
-      console.error('Error loading random profile:', error);
-      alert('Không thể tải hồ sơ, vui lòng thử lại sau.');
+      throw new Error("Invalid API response format");
     }
+  } catch (error) {
+    console.error("Error loading random profiles:", error);
     throw error;
   }
 }
